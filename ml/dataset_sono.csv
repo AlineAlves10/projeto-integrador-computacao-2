@@ -1,4 +1,5 @@
-﻿idade_meses,duracao_ultima_soneca_min,volume_leite_ml,nivel_agitacao_1a5,janela_sono_min
+@"
+idade_meses,duracao_ultima_soneca_min,volume_leite_ml,nivel_agitacao_1a5,janela_sono_min
 2,45,110,2,75
 2,30,90,4,60
 3,60,130,1,90
@@ -13,3 +14,4 @@
 7,45,180,4,140
 8,120,210,1,180
 8,60,190,3,160
+"@ | Out-File -FilePath "ml\dataset_sono.csv" -Encoding utf8

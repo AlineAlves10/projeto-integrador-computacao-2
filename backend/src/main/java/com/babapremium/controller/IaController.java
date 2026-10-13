@@ -2,7 +2,6 @@
 
 import com.babapremium.dto.PrevisaoSonoRequestDTO;
 import com.babapremium.service.MlService;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +16,7 @@ public class IaController {
         this.mlService = mlService;
     }
 
-    @PostMapping(value = "/prever-sono", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/prever-sono", produces = "application/json;charset=UTF-8")
     public ResponseEntity<String> preverSono(@RequestBody PrevisaoSonoRequestDTO dto) {
         String resultadoJson = mlService.executarPredicaoSono(dto);
         return ResponseEntity.ok(resultadoJson);
