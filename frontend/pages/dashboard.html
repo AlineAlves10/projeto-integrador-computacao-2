@@ -58,6 +58,9 @@
         <a href="saude.html" style="color: var(--text-muted); text-decoration: none;">🩺 Saúde & Vacinas</a>
         <a href="estatisticas.html" style="color: var(--text-muted); text-decoration: none;">📊 Gráficos</a>
         <a href="notas.html" style="color: var(--text-muted); text-decoration: none;">📝 Diário</a>
+        <a href="galeria.html" style="color: var(--text-muted); text-decoration: none;">📷 Fotos & Vídeos</a>
+        <a href="perfil-bebe.html" style="color: var(--text-muted); text-decoration: none;">👤 Perfil</a>
+        <a href="#" onclick="AuthService.logout(); return false;" style="color: var(--text-muted); text-decoration: none;">🚪 Sair</a>
       </nav>
     </aside>
 
@@ -66,13 +69,8 @@
       
       <!-- HEADER DO BEBÊ -->
       <section class="baby-card" style="display: flex; justify-content: space-between; align-items: center;">
-        <div style="display: flex; align-items: center; gap: 1rem;">
-          <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👶</div>
-          <div>
-            <h3 id="bebe-nome">Lucas Silva</h3>
-            <p style="color: var(--text-muted); font-size: 0.85rem;" id="bebe-idade">6 meses e 12 dias • Acordado há 2h 15m</p>
-          </div>
-        </div>
+        <!-- Bebê ativo + "Trocar bebê" (bebe-ativo.js) -->
+        <div id="seletor-bebe" style="flex: 1;"></div>
         <button id="btn-abrir-registro" class="metric-badge" style="border: none; cursor: pointer;">+ Registrar</button>
       </section>
 
@@ -137,61 +135,51 @@
       <div class="dashboard-columns">
         
         <!-- COLUNA 1: Resumo do Dia -->
-        <div class="baby-card">
+        <div class="baby-card" id="card-resumo">
           <h4 style="margin-bottom: 1rem;">📊 Resumo de Hoje</h4>
+          <div id="msg-resumo"></div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
             <div>
               <p style="font-size: 0.75rem; color: var(--text-muted);">Sono Total</p>
-              <strong>4h 30m</strong>
+              <strong id="resumo-sono">—</strong>
+              <p class="texto-apoio" id="resumo-sono-detalhe"></p>
             </div>
             <div>
               <p style="font-size: 0.75rem; color: var(--text-muted);">Leite Ingerido</p>
-              <strong>450 ml</strong>
+              <strong id="resumo-leite">—</strong>
+              <p class="texto-apoio" id="resumo-leite-detalhe"></p>
             </div>
             <div>
               <p style="font-size: 0.75rem; color: var(--text-muted);">Fraldas Trocadas</p>
-              <strong>4 trocas</strong>
+              <strong id="resumo-fraldas">—</strong>
+              <p class="texto-apoio" id="resumo-fraldas-detalhe"></p>
             </div>
             <div>
-              <p style="font-size: 0.75rem; color: var(--text-muted);">Última Temp.</p>
-              <strong>36.5 °C</strong>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">Refeições</p>
+              <strong id="resumo-refeicoes">—</strong>
+              <p class="texto-apoio" id="resumo-atividades"></p>
             </div>
           </div>
+          <div id="resumo-observacoes" style="margin-top: 0.85rem;"></div>
         </div>
 
         <!-- COLUNA 2: Linha do Tempo -->
-        <div class="baby-card">
+        <div class="baby-card" id="card-timeline">
           <h4 style="margin-bottom: 1rem;">🕒 Linha do Tempo</h4>
-          <div class="timeline-list">
-            <div class="timeline-item">
-              <div class="timeline-dot"></div>
-              <div>
-                <strong style="font-size: 0.85rem;">11:15 - Mamadeira</strong>
-                <p style="font-size: 0.75rem; color: var(--text-muted);">150ml de fórmula</p>
-              </div>
-            </div>
-            <div class="timeline-item">
-              <div class="timeline-dot" style="background: var(--secondary);"></div>
-              <div>
-                <strong style="font-size: 0.85rem;">10:30 - Troca de Fralda</strong>
-                <p style="font-size: 0.75rem; color: var(--text-muted);">Apenas xixi</p>
-              </div>
-            </div>
+          <div class="timeline-list" id="dashboard-timeline">
+            <p class="estado-vazio">Carregando...</p>
           </div>
         </div>
 
         <!-- COLUNA 3: Próximos Lembretes -->
-        <div class="baby-card">
-          <h4 style="margin-bottom: 1rem;">⏰ Próximos Horários</h4>
-          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 0.85rem;">🥣 Almoço / Papinha</span>
-              <span class="metric-badge">12:30</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 0.85rem;">💤 Soneca da Tarde</span>
-              <span class="metric-badge">14:00</span>
-            </div>
+        <div class="baby-card" id="card-lembretes">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h4>⏰ Próximos Horários</h4>
+            <button type="button" class="btn-outline" onclick="abrirModal('horario')">+ Agendar</button>
+          </div>
+          <div id="msg-horarios"></div>
+          <div id="lista-horarios" style="display: flex; flex-direction: column; gap: 0.6rem;">
+            <p class="estado-vazio">Carregando...</p>
           </div>
         </div>
 
@@ -204,6 +192,7 @@
       <a href="rotina.html"><span>📅</span>Rotina</a>
       <a href="saude.html"><span>🩺</span>Saúde</a>
       <a href="estatisticas.html"><span>📊</span>Gráficos</a>
+      <a href="galeria.html"><span>📷</span>Galeria</a>
       <a href="perfil-bebe.html"><span>👤</span>Perfil</a>
     </nav>
   </div>
@@ -217,7 +206,7 @@
       </div>
 
       <form id="form-registro" onsubmit="salvarRegistro(event)">
-        <!-- Conteúdo injetado dinamicamente pelo rotina.js -->
+        <!-- Conteúdo injetado dinamicamente pelo registro-rotina.js -->
         <div id="campos-dinamicos" style="display: flex; flex-direction: column; gap: 0.9rem;"></div>
 
         <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
@@ -228,7 +217,11 @@
     </div>
   </div>
 
+  <script src="../js/config.js"></script>
   <script src="../js/api.js"></script>
+  <script src="../js/foto.js"></script>
+  <script src="../js/bebe-ativo.js"></script>
+  <script src="../js/registro-rotina.js"></script>
   <script src="../js/dashboard.js"></script>
 </body>
 </html>

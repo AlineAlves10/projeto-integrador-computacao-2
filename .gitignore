@@ -17,3 +17,6 @@ target/
 
 # Logs
 *.log
+
+# Fotos enviadas pelos usuários
+backend/uploads/

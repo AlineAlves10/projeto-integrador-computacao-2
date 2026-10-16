@@ -73,6 +73,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Banco em memória apenas para os testes automatizados (mvn test sem PostgreSQL externo) -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Spring Security -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

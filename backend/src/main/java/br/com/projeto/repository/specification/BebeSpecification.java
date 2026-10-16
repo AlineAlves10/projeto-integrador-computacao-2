@@ -4,7 +4,10 @@ import br.com.projeto.Enum.FaixaEtariaEnum;
 import br.com.projeto.model.autenticacao.Bebe;
 import br.com.projeto.model.autenticacao.Usuario;
 import br.com.projeto.model.autenticacao.UsuarioBebe;
+import br.com.projeto.Enum.TipoUsuarioEnum;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -28,20 +31,26 @@ public class BebeSpecification {
     }
 
 
-    // Nome do responsável
+    // Nome do responsável: usuário vinculado como RESPONSAVEL ou o nome informado no cadastro (Bebe.nomeResponsavel),
+    // que cobre bebês cadastrados por babás antes de o responsável ter conta
     public Specification<Bebe> procurarBebePorNomeResponsavel(
             String nomeResponsavel) {
 
         return (root, query, criteria) -> {
 
-            Join<Bebe, UsuarioBebe> usuarioBebe = root.join("usuariosBebes");
+            String padrao = "%" + nomeResponsavel.toLowerCase() + "%";
 
+            Subquery<Long> responsaveis = query.subquery(Long.class);
+            Root<UsuarioBebe> usuarioBebe = responsaveis.from(UsuarioBebe.class);
             Join<UsuarioBebe, Usuario> usuario = usuarioBebe.join("usuario");
+            responsaveis.select(usuarioBebe.get("bebe").get("id")).where(
+                    criteria.equal(usuarioBebe.get("bebe").get("id"), root.get("id")),
+                    criteria.equal(usuarioBebe.get("papel"), TipoUsuarioEnum.RESPONSAVEL),
+                    criteria.like(criteria.lower(usuario.get("nome")), padrao));
 
-            return criteria.and(criteria.like(criteria.lower(usuario.get("nome")),
-                            "%" + nomeResponsavel.toLowerCase() + "%"),
-                    criteria.equal(usuarioBebe.get("papel"),
-                            "RESPONSAVEL"));
+            return criteria.or(
+                    criteria.like(criteria.lower(root.get("nomeResponsavel")), padrao),
+                    criteria.exists(responsaveis));
         };
     }
 

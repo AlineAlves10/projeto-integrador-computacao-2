@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Baby Premium - Perfil</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <style>
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+    @media (min-width: 900px) {
+      .profile-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    .info-list {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.4rem 1rem;
+      font-size: 0.85rem;
+    }
+    .info-list dt {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin-bottom: 0.75rem;
+    }
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #475569;
+    }
+    .form-control {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0 0.75rem;
+    }
+    .btn-action-small {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 0.9rem;
+      border-radius: var(--radius-md);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-action-small:hover {
+      opacity: 0.9;
+    }
+    .btn-action-small:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.4rem 0.75rem;
+      border-radius: var(--radius-md);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-outline.perigo {
+      color: #b91c1c;
+      border-color: #fecaca;
+    }
+    .list-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .list-row:last-child {
+      border-bottom: none;
+    }
+  </style>
+  <script src="../js/auth.js"></script>
+  <script>
+    // Redireciona caso o usuário não esteja logado
+    AuthService.protegerRota("login.html");
+  </script>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- SIDEBAR (Exibida no Computador) -->
+    <aside class="sidebar">
+      <div class="logo-container" style="margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem;">
+        <img src="../assets/images/logo.png" alt="Babá Premium Logo" style="max-width: 180px; height: auto; display: block;">
+      </div>
+      <nav style="display: flex; flex-direction: column; gap: 1rem;">
+        <a href="dashboard.html" style="color: var(--text-muted); text-decoration: none;">🏠 Dashboard</a>
+        <a href="rotina.html" style="color: var(--text-muted); text-decoration: none;">📅 Rotina Diária</a>
+        <a href="saude.html" style="color: var(--text-muted); text-decoration: none;">🩺 Saúde & Vacinas</a>
+        <a href="estatisticas.html" style="color: var(--text-muted); text-decoration: none;">📊 Gráficos</a>
+        <a href="notas.html" style="color: var(--text-muted); text-decoration: none;">📝 Diário</a>
+        <a href="galeria.html" style="color: var(--text-muted); text-decoration: none;">📷 Fotos & Vídeos</a>
+        <a href="perfil-bebe.html" style="color: var(--primary); font-weight: bold; text-decoration: none;">👤 Perfil</a>
+        <a href="#" onclick="AuthService.logout(); return false;" style="color: var(--text-muted); text-decoration: none;">🚪 Sair</a>
+      </nav>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-content">
+
+      <!-- Bebê ativo + "Trocar bebê" (bebe-ativo.js) -->
+      <div id="seletor-bebe" class="seletor-bebe-barra"></div>
+
+      <div class="profile-grid">
+
+        <!-- BEBÊ SELECIONADO (GET /bebes/{id}, foto em PUT/GET/DELETE /bebes/{id}/foto) -->
+        <section class="baby-card">
+          <h4 style="margin-bottom: 1rem;">👶 Bebê Selecionado</h4>
+          <div id="msg-bebe"></div>
+          <div id="dados-bebe">
+            <p class="estado-vazio">Carregando...</p>
+          </div>
+          <div id="gerenciar-foto" hidden style="margin-top: 1rem;">
+            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+              <img class="foto-bebe grande" id="foto-atual" alt="Foto do bebê selecionado">
+              <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                <input type="file" id="input-nova-foto" accept="image/jpeg,image/png,image/webp" hidden>
+                <img class="foto-bebe grande" id="previa-nova-foto" alt="Prévia da nova foto" hidden>
+                <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                  <button type="button" class="btn-outline" id="btn-escolher-foto">Trocar foto</button>
+                  <button type="button" class="btn-action-small" id="btn-salvar-foto" hidden>Salvar foto</button>
+                  <button type="button" class="btn-outline" id="btn-cancelar-foto" hidden>Cancelar</button>
+                  <button type="button" class="btn-outline perigo" id="btn-remover-foto" hidden>Remover foto</button>
+                </div>
+                <span class="texto-apoio">JPEG, PNG ou WebP, até 5 MB</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- MEUS BEBÊS (GET /bebes/meus) -->
+        <section class="baby-card">
+          <h4 style="margin-bottom: 1rem;">🍼 Meus Bebês</h4>
+          <div id="msg-meus"></div>
+          <div id="lista-meus-bebes"><p class="estado-vazio">Carregando...</p></div>
+        </section>
+
+        <!-- PESSOAS VINCULADAS E CONTATOS (GET /bebes/{id}/contatos, POST/DELETE /bebes/{id}/usuarios) -->
+        <section class="baby-card" id="card-vinculos" hidden>
+          <h4 style="margin-bottom: 0.35rem;">👨‍👩‍👧 Pessoas Vinculadas</h4>
+          <p class="texto-apoio" style="margin-bottom: 1rem;">O telefone aparece apenas para quem tem vínculo com o bebê: a babá vê o contato do responsável e o responsável vê o contato da babá.</p>
+          <div id="msg-vinculos"></div>
+          <div id="lista-vinculos"></div>
+
+          <form id="form-vinculo" onsubmit="adicionarVinculo(event)" style="margin-top: 1rem;">
+            <p class="texto-apoio" style="margin-bottom: 0.5rem;">Vincule uma babá ou outro responsável que já tenha conta no Babá Premium. O papel é o tipo da conta da pessoa.</p>
+            <div class="form-group">
+              <label for="vinculo-email">E-mail do usuário</label>
+              <input type="email" id="vinculo-email" class="form-control" placeholder="pessoa@email.com" maxlength="150" required>
+            </div>
+            <button type="submit" class="btn-action-small" id="btn-vincular">+ Vincular Usuário</button>
+          </form>
+        </section>
+
+        <!-- MEUS BEBÊS COMO BABÁ (GET /bebes/baba/{idBaba}) -->
+        <section class="baby-card" id="card-baba" hidden>
+          <h4 style="margin-bottom: 1rem;">🔎 Buscar entre os bebês sob meus cuidados</h4>
+          <form id="form-busca-baba" onsubmit="buscarBebesDaBaba(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="busca-nome-bebe">Nome do bebê</label>
+                <input type="text" id="busca-nome-bebe" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="busca-nome-resp">Nome do responsável</label>
+                <input type="text" id="busca-nome-resp" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="busca-faixa">Faixa etária</label>
+                <select id="busca-faixa" class="form-control">
+                  <option value="">Todas</option>
+                  <option value="ZERO_A_TRES_MESES">0 a 3 meses</option>
+                  <option value="QUATRO_A_SEIS_MESES">4 a 6 meses</option>
+                  <option value="SETE_A_DOZE_MESES">7 a 12 meses</option>
+                  <option value="UM_A_DOIS_ANOS">1 a 2 anos</option>
+                  <option value="DOIS_A_TRES_ANOS">2 a 3 anos</option>
+                  <option value="TRES_ANOS_OU_MAIS">3 anos ou mais</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn-action-small">Buscar</button>
+          </form>
+          <div id="msg-baba" style="margin-top: 1rem;"></div>
+          <div id="lista-bebes-baba"></div>
+        </section>
+
+        <!-- CADASTRAR NOVO BEBÊ (POST /bebes + PUT /bebes/{id}/foto) -->
+        <section class="baby-card" id="card-novo-bebe">
+          <h4 style="margin-bottom: 1rem;">➕ Cadastrar Novo Bebê</h4>
+          <div id="msg-novo-bebe"></div>
+          <form id="form-novo-bebe" onsubmit="cadastrarBebe(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="novo-nome">Nome</label>
+                <input type="text" id="novo-nome" class="form-control" maxlength="120" required>
+              </div>
+              <div class="form-group">
+                <label for="novo-nasc">Data de nascimento</label>
+                <input type="date" id="novo-nasc" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label for="novo-sexo">Sexo</label>
+                <select id="novo-sexo" class="form-control" required>
+                  <option value="">Selecione...</option>
+                  <option value="M">Masculino</option>
+                  <option value="F">Feminino</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" id="grupo-nome-responsavel" hidden>
+              <label for="novo-responsavel">Nome do responsável</label>
+              <input type="text" id="novo-responsavel" class="form-control" maxlength="120" placeholder="Ex: Carla Souza">
+              <span class="texto-apoio">Obrigatório: identifica para quem a criança está sob seus cuidados. Se o responsável tiver conta, vincule-o depois em "Pessoas Vinculadas".</span>
+            </div>
+            <div class="form-group">
+              <label for="novo-obs">Observações</label>
+              <textarea id="novo-obs" class="form-control" rows="2" maxlength="255" required></textarea>
+            </div>
+            <div class="form-group">
+              <label>Foto</label>
+              <div id="novo-foto"></div>
+            </div>
+            <button type="submit" class="btn-action-small" id="btn-novo-bebe">Cadastrar Bebê</button>
+          </form>
+        </section>
+
+        <!-- MINHA CONTA (GET /usuarios/{id}) -->
+        <section class="baby-card">
+          <h4 style="margin-bottom: 1rem;">👤 Minha Conta</h4>
+          <dl class="info-list" id="dados-usuario">
+            <dt>Carregando...</dt><dd></dd>
+          </dl>
+          <form id="form-telefone" onsubmit="salvarTelefone(event)" style="margin-top: 1rem;">
+            <div id="msg-telefone"></div>
+            <div class="form-group">
+              <label for="conta-telefone">Telefone de contato (com DDD)</label>
+              <input type="tel" id="conta-telefone" class="form-control" maxlength="25" inputmode="tel" autocomplete="tel" placeholder="(11) 98765-4321">
+              <span class="texto-apoio">Visível só para as pessoas vinculadas aos seus bebês. Deixe vazio para remover.</span>
+            </div>
+            <button type="submit" class="btn-action-small" id="btn-telefone">Salvar telefone</button>
+          </form>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- BARRA INFERIOR MOBILE -->
+    <nav class="bottom-nav">
+      <a href="dashboard.html"><span>🏠</span>Início</a>
+      <a href="rotina.html"><span>📅</span>Rotina</a>
+      <a href="saude.html"><span>🩺</span>Saúde</a>
+      <a href="estatisticas.html"><span>📊</span>Gráficos</a>
+      <a href="galeria.html"><span>📷</span>Galeria</a>
+      <a href="perfil-bebe.html" class="active"><span>👤</span>Perfil</a>
+    </nav>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/foto.js"></script>
+  <script src="../js/bebe-ativo.js"></script>
+  <script src="../js/perfil.js"></script>
+</body>
+</html>

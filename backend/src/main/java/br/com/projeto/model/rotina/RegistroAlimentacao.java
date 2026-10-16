@@ -2,6 +2,7 @@ package br.com.projeto.model.rotina;
 
 import br.com.projeto.Enum.LadoAmamentacaoEnum;
 import br.com.projeto.Enum.TipoAlimentacaoEnum;
+import br.com.projeto.Enum.TipoLeiteEnum;
 import br.com.projeto.model.autenticacao.Bebe;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -31,10 +32,18 @@ public class RegistroAlimentacao {
     @Column(nullable = false)
     private TipoAlimentacaoEnum tipo;
 
-    private String alimento; //quando for do tipo SOLIDA, informar o alimento (ex.: papinha de fruta, arroz, feijão, etc.)
+    private String alimento; // SOLIDA (papinha ou refeição): descrição do alimento
 
     private LocalDateTime dataHora;
-    private String quantidade; // Ex.: 120 ml ou 15 minutos ou 1 porção
+    private String quantidade; // SOLIDA: quantidade consumida em texto livre (ex.: 3 colheres, meio prato)
+
+    private Integer volumeMl; // mamadeira: volume ingerido, usado nas estatísticas
+
+    // MAMADEIRA: leite materno ou fórmula. Nulo em registros antigos, anteriores a essa distinção.
+    @Enumerated(EnumType.STRING)
+    private TipoLeiteEnum tipoLeite;
+
+    private Integer duracaoMinutos; // peito: duração da mamada
 
     @Enumerated(EnumType.STRING)
     private LadoAmamentacaoEnum lado;

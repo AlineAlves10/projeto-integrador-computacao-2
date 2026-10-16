@@ -28,9 +28,9 @@ public class RegistroSono {
     @Column(nullable = false)
     private LocalDateTime inicio;
 
-    @Column(nullable = false)
+    // Nulo enquanto o bebê ainda está dormindo
     private LocalDateTime fim;
 
-    private Integer duracaoMinutos; //qualidade
+    private Integer duracaoMinutos; // calculado a partir de inicio/fim
     private String local;
 }

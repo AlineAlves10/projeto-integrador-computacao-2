@@ -63,7 +63,8 @@ const ChartsModule = {
           pointBorderColor: "#ffffff",
           pointBorderWidth: 2,
           pointRadius: 5,
-          pointHoverRadius: 7
+          pointHoverRadius: 7,
+          spanGaps: false // não liga pontos por cima de dias sem registro
         }]
       },
       options: {
@@ -84,8 +85,9 @@ const ChartsModule = {
         scales: {
           y: {
             beginAtZero: false,
-            min: Math.max(0, Math.floor(Math.min(...dadosHoras) - 1)),
-            max: Math.ceil(Math.max(...dadosHoras) + 1),
+            // Dias sem registro chegam como null e são ignorados na escala
+            min: Math.max(0, Math.floor(Math.min(...dadosHoras.filter(v => v !== null)) - 1)),
+            max: Math.ceil(Math.max(...dadosHoras.filter(v => v !== null)) + 1),
             ticks: {
               color: this.cores.textMuted,
               callback: (val) => `${val}h`

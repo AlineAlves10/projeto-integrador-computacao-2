@@ -1,71 +1,68 @@
 /**
  * auth.js - Gerenciador de Autenticação e Sessão
  * Projeto Integrador: Babá Premium
+ *
+ * login() e cadastrar() dependem de config.js e api.js. protegerRota() e logout() funcionam sozinhos.
+ * A API emite um token JWT em POST /auth/login e POST /auth/cadastro; ele é enviado em todas as requisições.
  */
 
 const TOKEN_KEY = "baba_premium_token";
 const USER_KEY = "baba_premium_user";
-const AUTH_API_URL = "http://localhost:8080/api/auth";
+const BEBE_KEY_PREFIX = "baba_premium_bebe_";
 
 const AuthService = {
   /**
-   * Realiza login no backend Spring Boot
-   * @param {string} email 
-   * @param {string} senha 
-   * @returns {Promise<object>} Dados do usuário autenticado e token
+   * Autentica no back-end (e-mail e senha conferidos pelo servidor)
+   * @returns {Promise<object>} UsuarioResponse
    */
   async login(email, senha) {
     try {
-      const response = await fetch(`${AUTH_API_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, senha })
-      });
-
-      if (!response.ok) {
-        const errorMsg = await response.text();
-        throw new Error(errorMsg || "Credenciais inválidas");
-      }
-
-      const data = await response.json();
-      
-      // Salva o token JWT e as informações básicas do usuário
-      if (data.token) {
-        localStorage.setItem(TOKEN_KEY, data.token);
-      }
-      if (data.usuario) {
-        localStorage.setItem(USER_KEY, JSON.stringify(data.usuario));
-      }
-
-      return data;
+      const sessao = await ApiService.auth.login(email, senha);
+      this.salvarSessao(sessao);
+      return sessao.usuario;
     } catch (error) {
-      console.error("[Auth] Erro no login:", error.message);
+      if (error.status === 401) throw new Error("E-mail ou senha inválidos.");
       throw error;
     }
   },
 
   /**
-   * Cadastra um novo responsável
-   * @param {object} dadosCadastro - { nome, email, senha, nomeBebe, dataNascimentoBebe }
+   * Cadastra a conta e todos os bebês em uma única transação no servidor (POST /auth/cadastro).
+   * Depois envia as fotos escolhidas, cada uma para o bebê correspondente (mesma ordem do formulário).
+   * @param {object} dados - { nome, email, senha, tipo, bebes: [{ ..., foto: File|null }] }
+   * @returns {Promise<{usuario, bebes, fotosComFalha: string[]}>}
    */
-  async cadastrar(dadosCadastro) {
-    try {
-      const response = await fetch(`${AUTH_API_URL}/cadastrar`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dadosCadastro)
-      });
+  async cadastrar(dados) {
+    const bebes = dados.bebes || [];
+    const resposta = await ApiService.auth.cadastrar({
+      nome: dados.nome,
+      email: dados.email,
+      senha: dados.senha,
+      tipo: dados.tipo,
+      bebes: bebes.map(({ foto, ...campos }) => campos)
+    });
+    this.salvarSessao(resposta.sessao);
 
-      if (!response.ok) {
-        const errorMsg = await response.text();
-        throw new Error(errorMsg || "Falha ao realizar cadastro");
+    const fotosComFalha = [];
+    for (let i = 0; i < resposta.bebes.length; i++) {
+      const foto = bebes[i]?.foto;
+      if (!foto) continue;
+      try {
+        await ApiService.bebes.enviarFoto(resposta.bebes[i].id, foto);
+      } catch (error) {
+        fotosComFalha.push(`${resposta.bebes[i].nome}: ${error.message}`);
       }
-
-      return await response.json();
-    } catch (error) {
-      console.error("[Auth] Erro no cadastro:", error.message);
-      throw error;
     }
+
+    if (resposta.bebes.length) {
+      this.setBebeAtivoId(resposta.sessao.usuario.id, resposta.bebes[0].id);
+    }
+    return { usuario: resposta.sessao.usuario, bebes: resposta.bebes, fotosComFalha };
+  },
+
+  salvarSessao(sessao) {
+    localStorage.setItem(TOKEN_KEY, sessao.token);
+    localStorage.setItem(USER_KEY, JSON.stringify(sessao.usuario));
   },
 
   /**
@@ -95,11 +92,18 @@ const AuthService = {
   },
 
   /**
-   * Verifica se há um token ativo
+   * Há token e ele ainda não expirou? (a validação definitiva é sempre feita pelo servidor)
    * @returns {boolean}
    */
   isAuthenticated() {
-    return !!this.getToken();
+    const token = this.getToken();
+    if (!token || !this.getUsuarioLogado()) return false;
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+      return !payload.exp || payload.exp * 1000 > Date.now();
+    } catch {
+      return false;
+    }
   },
 
   /**
@@ -107,12 +111,27 @@ const AuthService = {
    * @param {string} rotaLogin Caminho da tela de login
    */
   protegerRota(rotaLogin = "login.html") {
-    // Permite bypass temporário em desenvolvimento caso queira testar sem backend rodando
-    const devMode = false; // Mude para true se quiser desativar a trava no front durante testes visuais
-
-    if (!devMode && !this.isAuthenticated()) {
+    if (!this.isAuthenticated()) {
+      localStorage.removeItem(TOKEN_KEY);
       window.location.href = rotaLogin;
     }
+  },
+
+  // ----------------------------------------------------
+  // BEBÊ ATIVO (preferência do navegador; a lista de bebês permitidos vem de GET /bebes/meus)
+  // ----------------------------------------------------
+
+  getBebeAtivoId(usuarioId) {
+    const valor = localStorage.getItem(BEBE_KEY_PREFIX + usuarioId);
+    return valor ? Number(valor) : null;
+  },
+
+  setBebeAtivoId(usuarioId, bebeId) {
+    localStorage.setItem(BEBE_KEY_PREFIX + usuarioId, String(bebeId));
+  },
+
+  limparBebeAtivo(usuarioId) {
+    localStorage.removeItem(BEBE_KEY_PREFIX + usuarioId);
   }
 };
 

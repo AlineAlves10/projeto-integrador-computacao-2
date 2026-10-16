@@ -28,8 +28,15 @@ public class Bebe {
     private LocalDate dataNascimento;
 
     private String sexo;
+
+    // Nome do arquivo da foto no diretório de uploads (gerado pelo servidor, nunca informado pelo cliente)
     private String fotoPerfil;
+
     private String observacoes;
+
+    // Obrigatório quando o bebê é cadastrado por uma babá; permite identificar o responsável mesmo sem conta
+    @Column(length = 120)
+    private String nomeResponsavel;
 
     @OneToMany(mappedBy = "bebe")
     private List<UsuarioBebe> usuariosBebes;

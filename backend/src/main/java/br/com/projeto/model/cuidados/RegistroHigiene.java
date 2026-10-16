@@ -1,5 +1,7 @@
 package br.com.projeto.model.cuidados;
 
+import br.com.projeto.Enum.TipoHigieneEnum;
+
 import br.com.projeto.model.autenticacao.Bebe;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,6 +30,9 @@ public class RegistroHigiene {
     @Column(nullable = false)
     private LocalDateTime dataHora;
 
-    private String tipo;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoHigieneEnum tipo;
+
     private String observacoes;
 }

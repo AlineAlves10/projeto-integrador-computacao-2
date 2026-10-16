@@ -1,5 +1,7 @@
 package br.com.projeto.model.cuidados;
 
+import br.com.projeto.Enum.TipoFraldaEnum;
+
 import br.com.projeto.model.autenticacao.Bebe;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,8 +30,20 @@ public class RegistroFralda {
     @Column(nullable = false)
     private LocalDateTime dataHora;
 
-    private String tipo;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoFraldaEnum tipo;
+
+    // Novos registros gravam o nome de ConsistenciaFezesEnum; registros antigos podem ter texto livre
     private String consistenciaCoco;
     private String corCoco;
     private String observacoes;
+
+    public boolean temXixi() {
+        return tipo == TipoFraldaEnum.XIXI || tipo == TipoFraldaEnum.MISTO;
+    }
+
+    public boolean temCoco() {
+        return tipo == TipoFraldaEnum.COCO || tipo == TipoFraldaEnum.MISTO;
+    }
 }

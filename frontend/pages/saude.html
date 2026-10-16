@@ -62,6 +62,11 @@
       opacity: 0.9;
     }
   </style>
+  <script src="../js/auth.js"></script>
+  <script>
+    // Redireciona caso o usuário não esteja logado
+    AuthService.protegerRota("login.html");
+  </script>
 </head>
 <body>
 
@@ -77,11 +82,16 @@
         <a href="saude.html" style="color: var(--primary); font-weight: bold; text-decoration: none;">🩺 Saúde & Vacinas</a>
         <a href="estatisticas.html" style="color: var(--text-muted); text-decoration: none;">📊 Gráficos</a>
         <a href="notas.html" style="color: var(--text-muted); text-decoration: none;">📝 Diário</a>
+        <a href="galeria.html" style="color: var(--text-muted); text-decoration: none;">📷 Fotos & Vídeos</a>
+        <a href="perfil-bebe.html" style="color: var(--text-muted); text-decoration: none;">👤 Perfil</a>
+        <a href="#" onclick="AuthService.logout(); return false;" style="color: var(--text-muted); text-decoration: none;">🚪 Sair</a>
       </nav>
     </aside>
 
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="main-content">
+      <!-- Bebê ativo + "Trocar bebê" (bebe-ativo.js) -->
+      <div id="seletor-bebe" class="seletor-bebe-barra"></div>
       
       <!-- CABEÇALHO -->
       <section class="baby-card" style="display: flex; justify-content: space-between; align-items: center;">
@@ -89,90 +99,51 @@
           <h2>Caderneta de Saúde</h2>
           <p style="color: var(--text-muted); font-size: 0.85rem;">Acompanhamento pediátrico, vacinas e biometria</p>
         </div>
-        <button class="btn-action-small" onclick="alert('Funcionalidade de adicionar registro em breve!')">+ Novo Registro</button>
+        <button class="btn-action-small" onclick="novoRegistroSaude()">+ Novo Registro</button>
       </section>
+
+      <div id="aviso-saude"></div>
 
       <!-- CARDS DE BIOMETRIA E PEDIATRIA -->
       <div class="health-grid">
         <div class="baby-card">
           <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">⚖️ ÚLTIMO PESO</span>
-          <div class="metric-value-box">7,450 kg</div>
-          <small style="color: var(--text-muted);">Registrado na consulta dos 5 meses</small>
+          <div class="metric-value-box" id="ultimo-peso">—</div>
+          <small style="color: var(--text-muted);" id="ultimo-peso-data">Sem registros de crescimento</small>
         </div>
 
         <div class="baby-card">
           <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">📏 COMPRIMENTO</span>
-          <div class="metric-value-box">65,5 cm</div>
-          <small style="color: var(--text-muted);">Percentil 50 da curva OMS</small>
+          <div class="metric-value-box" id="ultima-altura">—</div>
+          <small style="color: var(--text-muted);" id="ultima-altura-data">Sem registros de crescimento</small>
         </div>
 
         <div class="baby-card">
           <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">🩺 PRÓXIMA CONSULTA</span>
-          <div class="metric-value-box" style="font-size: 1.25rem; color: var(--text-main); margin-top: 0.6rem;">12/Nov - 14:30</div>
-          <small style="color: var(--text-muted);">Dra. Camila - Pediatra</small>
+          <div class="metric-value-box" style="font-size: 1.25rem; color: var(--text-main); margin-top: 0.6rem;" id="proxima-consulta">—</div>
+          <small style="color: var(--text-muted);" id="proxima-consulta-desc">Sem consultas agendadas</small>
         </div>
       </div>
+
+      <!-- HISTÓRICO DE BIOMETRIA -->
+      <section class="baby-card">
+        <h4 style="margin-bottom: 1rem;">Histórico de Medidas</h4>
+        <div id="lista-crescimentos"></div>
+      </section>
 
       <!-- CALENDÁRIO VACINAL -->
       <section class="baby-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-          <h4>Calendário Vacinal</h4>
-          <span style="font-size: 0.8rem; color: var(--text-muted);">Esquema Nacional</span>
+          <h4>Vacinas Aplicadas</h4>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Registradas na caderneta</span>
         </div>
-
-        <!-- AQUI ESTÁ A DIV QUE O saude.js VAI PREENCHER -->
         <div id="lista-vacinas"></div>
-      </section>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Ao nascer • Maternidade</p>
-          </div>
-          <span class="badge-applied">✓ Aplicada</span>
-        </div>
-
-        <div class="vaccine-item">
-          <div>
-            <strong>Pentavalente & Rotavírus (1ª Dose)</strong>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">2 meses • UBS Central</p>
-          </div>
-          <span class="badge-applied">✓ Aplicada</span>
-        </div>
-
-        <div class="vaccine-item">
-          <div>
-            <strong>Meningocócica C (1ª Dose)</strong>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">3 meses • UBS Central</p>
-          </div>
-          <span class="badge-applied">✓ Aplicada</span>
-        </div>
-
-        <div class="vaccine-item">
-          <div>
-            <strong>Pentavalente, VIP & Rotavírus (2ª Dose)</strong>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">4 meses • Prevista p/ 28/Nov</p>
-          </div>
-          <span class="badge-pending">⏳ Pendente</span>
-        </div>
-
-        <div class="vaccine-item">
-          <div>
-            <strong>Meningocócica C (2ª Dose)</strong>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">5 meses • Prevista p/ Dezembro</p>
-          </div>
-          <span class="badge-pending">⏳ Pendente</span>
-        </div>
       </section>
 
       <!-- HISTÓRICO DE MEDICAMENTOS -->
-      <section class="baby-card" style="margin-top: 1.5rem;">
-        <h4 style="margin-bottom: 1rem;">Medicamentos em Uso</h4>
-        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-          <div style="background: var(--background); padding: 0.85rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <strong style="font-size: 0.9rem;">Vitamina D (Ad-til / Colecalciferol)</strong>
-              <p style="font-size: 0.8rem; color: var(--text-muted);">2 gotas ao dia pela manhã</p>
-            </div>
-            <span style="font-size: 0.8rem; color: var(--primary); font-weight: 600;">Uso contínuo</span>
-          </div>
-        </div>
+      <section class="baby-card">
+        <h4 style="margin-bottom: 1rem;">Medicamentos Administrados</h4>
+        <div id="lista-medicamentos"></div>
       </section>
 
     </main>
@@ -186,8 +157,127 @@
       <a href="notas.html"><span>📝</span>Diário</a>
     </nav>
   </div>
-<script src="../js/api.js"></script>
+  <!-- MODAL DE NOVO REGISTRO DE SAÚDE -->
+  <div class="modal-overlay" id="modal-saude">
+    <div class="modal-card">
+      <h3 id="modal-saude-titulo">Novo Registro de Saúde</h3>
+      <form id="form-saude" onsubmit="salvarRegistroSaude(event)">
+        <div id="msg-saude"></div>
+        <div class="form-group">
+          <label for="saude-tipo">Tipo de registro</label>
+          <select id="saude-tipo" class="form-control" onchange="ajustarFormularioSaude()">
+            <option value="crescimento">⚖️ Medidas (peso, altura, perímetro cefálico)</option>
+            <option value="vacina">💉 Vacina aplicada</option>
+            <option value="medicamento">💊 Medicamento administrado</option>
+            <option value="consulta">🩺 Agendar consulta</option>
+          </select>
+        </div>
+
+        <div data-saude="crescimento">
+          <div class="form-group">
+            <label for="cresc-data">Data da medição</label>
+            <input type="date" id="cresc-data" class="form-control">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cresc-peso">Peso (kg)</label>
+              <input type="number" id="cresc-peso" class="form-control" step="0.01" min="0.2" max="60" placeholder="7,45">
+            </div>
+            <div class="form-group">
+              <label for="cresc-altura">Comprimento (cm)</label>
+              <input type="number" id="cresc-altura" class="form-control" step="0.1" min="20" max="150" placeholder="65,5">
+            </div>
+            <div class="form-group">
+              <label for="cresc-perimetro">Perímetro cefálico (cm)</label>
+              <input type="number" id="cresc-perimetro" class="form-control" step="0.1" min="15" max="70">
+            </div>
+          </div>
+          <p class="texto-apoio">Informe ao menos uma medida. Medições anteriores são mantidas no histórico.</p>
+        </div>
+
+        <div data-saude="vacina" hidden>
+          <div class="form-group">
+            <label for="vac-nome">Vacina</label>
+            <input type="text" id="vac-nome" class="form-control" maxlength="120" placeholder="Ex: Pentavalente">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="vac-dose">Dose</label>
+              <input type="text" id="vac-dose" class="form-control" maxlength="60" placeholder="Ex: 1ª dose">
+            </div>
+            <div class="form-group">
+              <label for="vac-data">Data de aplicação</label>
+              <input type="date" id="vac-data" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="vac-proxima">Próxima dose (opcional)</label>
+              <input type="date" id="vac-proxima" class="form-control">
+            </div>
+          </div>
+        </div>
+
+        <div data-saude="medicamento" hidden>
+          <p class="texto-apoio">Registre apenas medicamentos orientados por um profissional de saúde.</p>
+          <div class="form-group">
+            <label for="med-nome">Medicamento</label>
+            <input type="text" id="med-nome" class="form-control" maxlength="120" placeholder="Ex: Vitamina D">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="med-dose">Dosagem</label>
+              <input type="text" id="med-dose" class="form-control" maxlength="60" placeholder="Ex: 2 gotas">
+            </div>
+            <div class="form-group">
+              <label for="med-via">Via (opcional)</label>
+              <input type="text" id="med-via" class="form-control" maxlength="60" placeholder="Ex: oral">
+            </div>
+            <div class="form-group">
+              <label for="med-quando">Data e hora</label>
+              <input type="datetime-local" id="med-quando" class="form-control">
+            </div>
+          </div>
+        </div>
+
+        <div data-saude="consulta" hidden>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cons-quando">Data e hora da consulta</label>
+              <input type="datetime-local" id="cons-quando" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="cons-desc">Profissional ou especialidade (opcional)</label>
+              <input type="text" id="cons-desc" class="form-control" maxlength="300" placeholder="Ex: pediatra">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cons-motivo">Motivo (opcional)</label>
+              <input type="text" id="cons-motivo" class="form-control" maxlength="300" placeholder="Ex: acompanhamento de rotina">
+            </div>
+            <div class="form-group">
+              <label for="cons-local">Local (opcional)</label>
+              <input type="text" id="cons-local" class="form-control" maxlength="150" placeholder="Ex: clínica ou UBS">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="saude-obs" id="saude-obs-label">Observações (opcional)</label>
+          <input type="text" id="saude-obs" class="form-control" maxlength="255">
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+          <button type="button" class="btn-cancel" style="flex: 1;" onclick="fecharModalSaude()">Cancelar</button>
+          <button type="submit" class="btn-submit" style="flex: 1;">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/foto.js"></script>
+  <script src="../js/bebe-ativo.js"></script>
   <script src="../js/saude.js"></script>
-</body>
 </body>
 </html>

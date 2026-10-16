@@ -2,9 +2,12 @@ package br.com.projeto.dto.response;
 
 import java.time.LocalDate;
 
-public record BebeResponse(String nome,
+// possuiFoto indica se há foto em GET /bebes/{id}/foto (o nome do arquivo no servidor não é exposto)
+public record BebeResponse(Long id,
+                           String nome,
                            LocalDate dataNascimento,
                            String sexo,
-                           String fotoPerfil,
-                           String observacoes) {
+                           boolean possuiFoto,
+                           String observacoes,
+                           String nomeResponsavel) {
 }
