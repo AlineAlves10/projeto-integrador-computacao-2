@@ -26,7 +26,7 @@ import java.util.List;
 public class SecurityConfig {
 
     // Origens do front-end autorizadas a chamar a API (nginx do docker-compose e Live Server)
-    @Value("${app.cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000,http://localhost:5500,http://127.0.0.1:5500}")
+    @Value("${app.cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000,http://localhost:5500,http://127.0.0.1:5500,http://localhost:4200,http://127.0.0.1:4200}")
     private List<String> allowedOrigins;
 
     @Bean
