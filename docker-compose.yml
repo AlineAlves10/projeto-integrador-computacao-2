@@ -12,14 +12,14 @@ services:
     volumes:
       - pgdata_premium:/var/lib/postgresql/data
 
+  # Front-end Angular: build de produção servido por nginx (frontend-angular/Dockerfile).
+  # A API é chamada em http://localhost:8080 a partir de http://localhost:3000 (origem liberada no CORS).
   frontend:
-    image: nginx:alpine
+    build: ./frontend-angular
     container_name: baby_premium_front
     restart: unless-stopped
     ports:
       - "3000:80"
-    volumes:
-      - ./frontend:/usr/share/nginx/html
     depends_on:
       - postgres-db
 

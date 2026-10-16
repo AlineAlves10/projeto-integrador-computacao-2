@@ -1,0 +1,11 @@
+<aside class="sidebar">
+  <div class="logo">
+    <img src="assets/images/logo.png" alt="Babá Premium">
+  </div>
+  <nav>
+    @for (item of itens(); track item.rota) {
+      <a [routerLink]="item.rota" routerLinkActive="active" ariaCurrentWhenActive="page">{{ item.icone }} {{ item.rotulo }}</a>
+    }
+    <button type="button" class="link-sair" (click)="sair.emit()">🚪 Sair</button>
+  </nav>
+</aside>

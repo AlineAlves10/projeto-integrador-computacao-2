@@ -1,0 +1,13 @@
+.gerenciar-foto {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.controles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}

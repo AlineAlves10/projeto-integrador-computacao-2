@@ -1,0 +1,27 @@
+@let m = midia();
+<app-modal [aberto]="m !== null" [titulo]="titulo()" largura="larga" [fecharAoClicarFora]="true" (fechar)="fechar.emit()">
+  @if (m) {
+    <app-mensagem [texto]="erro()" />
+    <div class="conteudo">
+      @if (url(); as url) {
+        @if (m.tipo === 'VIDEO') {
+          <video controls autoplay playsinline [src]="url"></video>
+        } @else {
+          <img [src]="url" [alt]="m.descricao || 'Foto do bebê'">
+        }
+      } @else if (carregando()) {
+        <p class="estado-vazio">Carregando...</p>
+      } @else if (m.tipo === 'VIDEO') {
+        <button type="button" class="btn-action-small" (click)="carregarOriginal(m)">
+          ▶ Carregar vídeo ({{ m.tamanhoBytes | tamanhoArquivo }})
+        </button>
+      }
+    </div>
+    <p class="texto-apoio">{{ info() }}</p>
+    @if (m.podeExcluir) {
+      <div class="rodape">
+        <button type="button" class="btn-outline perigo" [disabled]="excluindo()" (click)="excluir(m)">Excluir</button>
+      </div>
+    }
+  }
+</app-modal>

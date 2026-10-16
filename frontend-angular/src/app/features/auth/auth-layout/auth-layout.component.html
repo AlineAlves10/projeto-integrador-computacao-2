@@ -1,0 +1,16 @@
+<div class="pagina-acesso">
+  <main class="auth-card">
+    <div class="auth-header">
+      <img src="assets/images/logo.png" alt="Babá Premium Logo">
+      <h2>Babá Premium</h2>
+      <p>{{ subtitulo() }}</p>
+    </div>
+
+    <nav class="auth-tabs">
+      <a routerLink="/login" routerLinkActive="active" class="auth-tab-btn">Entrar</a>
+      <a routerLink="/cadastro" routerLinkActive="active" class="auth-tab-btn">Cadastrar</a>
+    </nav>
+
+    <router-outlet />
+  </main>
+</div>

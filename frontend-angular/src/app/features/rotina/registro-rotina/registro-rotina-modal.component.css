@@ -1,0 +1,16 @@
+.campos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.encerrar-sono {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.acoes-formulario {
+  margin-top: 1rem;
+}

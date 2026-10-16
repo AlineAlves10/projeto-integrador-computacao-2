@@ -1,0 +1,49 @@
+<section class="baby-card cabecalho-pagina">
+  <div>
+    <h2>Painel de Hoje</h2>
+    <p>Registre os cuidados e acompanhe o dia do bebê</p>
+  </div>
+  <button type="button" class="metric-badge" (click)="abrirRegistro('alimentacao')">+ Registrar</button>
+</section>
+
+<app-acoes-rapidas [acoes]="acoes" (escolher)="abrirRegistro($event)" />
+
+<div class="dashboard-columns">
+  <div class="baby-card">
+    <h4 class="titulo-cartao">📊 Resumo de Hoje</h4>
+    <app-mensagem [texto]="erroResumo()" />
+    @if (resumo(); as resumo) {
+      @if (resumo.totalRegistros === 0) {
+        <app-mensagem texto="Nenhum cuidado registrado hoje. Use os botões acima para registrar." tipo="sucesso" />
+      }
+      <app-resumo-dia [resumo]="resumo" />
+    } @else if (!erroResumo()) {
+      <p class="estado-vazio">{{ bebeAtivo.pronto() && !bebeAtivo.atual() ? 'Nenhum bebê selecionado.' : 'Carregando...' }}</p>
+    }
+  </div>
+
+  <div class="baby-card">
+    <h4 class="titulo-cartao">🕒 Linha do Tempo</h4>
+    <app-mensagem [texto]="erroLinhaDoTempo()" />
+    @if (linhaDoTempo(); as itens) {
+      <app-linha-do-tempo [itens]="itens" vazio="Nenhuma atividade registrada hoje." />
+    } @else if (!erroLinhaDoTempo()) {
+      <p class="estado-vazio">{{ bebeAtivo.pronto() && !bebeAtivo.atual() ? 'Nenhum bebê selecionado.' : 'Carregando...' }}</p>
+    }
+  </div>
+
+  <div class="baby-card">
+    <div class="cabecalho-cartao">
+      <h4>⏰ Próximos Horários</h4>
+      <button type="button" class="btn-outline" (click)="abrirRegistro('horario')">+ Agendar</button>
+    </div>
+    <app-mensagem [texto]="erroHorarios()" />
+    @if (resumo(); as resumo) {
+      <app-proximos-horarios [horarios]="resumo.proximosHorarios" (alterarStatus)="alterarHorario($event)" />
+    } @else if (!erroResumo()) {
+      <p class="estado-vazio">{{ bebeAtivo.pronto() && !bebeAtivo.atual() ? 'Nenhum bebê selecionado.' : 'Carregando...' }}</p>
+    }
+  </div>
+</div>
+
+<app-registro-rotina-modal [tipo]="registroAberto()" [dataBase]="hoje" (fechar)="registroAberto.set(null)" (salvo)="recarregar()" />

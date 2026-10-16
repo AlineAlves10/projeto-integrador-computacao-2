@@ -1,0 +1,14 @@
+@let m = midia();
+<button type="button" class="midia-item" (click)="abrir.emit(m)">
+  @if (m.possuiMiniatura && src()) {
+    <img class="midia-miniatura" [src]="src()" [alt]="m.descricao || 'Mídia do bebê'">
+  } @else {
+    <div class="midia-miniatura" aria-hidden="true">
+      {{ m.tipo === 'VIDEO' ? '🎬' : falhou() ? '🖼️' : '' }}
+    </div>
+  }
+  @if (m.tipo === 'VIDEO') {
+    <span class="midia-selo-video">▶ vídeo</span>
+  }
+  <span class="midia-legenda">{{ m.dataEnvio | dataHoraBr }}<br>por {{ m.enviadoPorNome }}</span>
+</button>

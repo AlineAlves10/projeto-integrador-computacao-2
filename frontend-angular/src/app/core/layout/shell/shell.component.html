@@ -1,0 +1,10 @@
+<div class="app-container">
+  <app-sidebar [itens]="itens" (sair)="sair()" />
+
+  <main class="main-content">
+    <app-seletor-bebe class="seletor-bebe-barra" />
+    <router-outlet />
+  </main>
+
+  <app-barra-navegacao [itens]="itens" />
+</div>

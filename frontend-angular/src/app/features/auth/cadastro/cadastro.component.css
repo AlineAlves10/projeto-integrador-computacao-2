@@ -1,0 +1,82 @@
+.largo {
+  width: 100%;
+  padding: 0.85rem;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+}
+
+.separador {
+  border: 0;
+  border-top: 1px dashed var(--border);
+  margin: 1rem 0;
+}
+
+.opcoes-quantidade {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.opcoes-quantidade label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.bebe-form-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #fcfbff;
+}
+
+.bebe-form-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.btn-secundario {
+  width: 100%;
+  background: transparent;
+  color: var(--primary);
+  border: 1px dashed var(--primary);
+  padding: 0.7rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.titulo-revisao {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.resumo-conta {
+  font-size: 0.85rem;
+}
+
+.contagem {
+  margin: 0.75rem 0 0.25rem;
+}
+
+.revisao-bebe {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.acoes-formulario {
+  margin-top: 1rem;
+}

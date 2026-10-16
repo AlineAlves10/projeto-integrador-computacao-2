@@ -1,0 +1,3 @@
+@if (texto()) {
+  <div class="aviso" [class]="tipo()" [attr.role]="tipo() === 'erro' ? 'alert' : 'status'">{{ texto() }}</div>
+}

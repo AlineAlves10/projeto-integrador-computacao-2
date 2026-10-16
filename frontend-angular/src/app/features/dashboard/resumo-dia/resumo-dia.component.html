@@ -1,0 +1,12 @@
+<div class="grade-indicadores">
+  @for (indicador of indicadores(); track indicador.rotulo) {
+    <div>
+      <p class="rotulo">{{ indicador.rotulo }}</p>
+      <strong>{{ indicador.valor }}</strong>
+      <p class="texto-apoio">{{ indicador.detalhe }}</p>
+    </div>
+  }
+</div>
+@if (resumo().observacoesDiario.length) {
+  <p class="texto-apoio diario"><strong>Diário de hoje:</strong> {{ resumo().observacoesDiario.join(' • ') }}</p>
+}

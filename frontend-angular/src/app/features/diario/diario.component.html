@@ -1,0 +1,27 @@
+<section class="baby-card cabecalho-pagina">
+  <div>
+    <h2>Diário do Bebê</h2>
+    <p>Registre marcos de desenvolvimento, humor e notas livres</p>
+  </div>
+  <button type="button" class="btn-submit" (click)="abrir()">+ Nova Anotação</button>
+</section>
+
+<div class="notes-grid">
+  <app-mensagem [texto]="erro()" />
+  @let lista = notas();
+  @if (!bebeAtivo.pronto()) {
+    <p class="estado-vazio">Carregando...</p>
+  } @else if (!bebeAtivo.atual()) {
+    <p class="estado-vazio">Nenhum bebê selecionado.</p>
+  } @else if (lista) {
+    @for (nota of lista; track nota.id) {
+      <app-nota-card [nota]="nota" [propria]="nota.autorId === usuarioId" (editar)="abrir($event)" (excluir)="excluir($event)" />
+    } @empty {
+      <p class="estado-vazio">Nenhuma anotação registrada para este bebê. Use "+ Nova Anotação".</p>
+    }
+  } @else if (!erro()) {
+    <p class="estado-vazio">Carregando...</p>
+  }
+</div>
+
+<app-nota-modal [aberto]="modalAberto()" [nota]="notaEmEdicao()" (fechar)="fechar()" (salvo)="recarregar()" />

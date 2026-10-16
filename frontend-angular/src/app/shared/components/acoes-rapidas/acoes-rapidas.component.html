@@ -1,0 +1,9 @@
+<section class="quick-action-grid">
+  @for (acao of acoes(); track acao.tipo) {
+    <button type="button" class="quick-action-btn" (click)="escolher.emit(acao.tipo)">
+      <span class="icon" aria-hidden="true">{{ acao.icone }}</span>
+      <span class="label">{{ acao.rotulo }}</span>
+      <span class="sub">{{ acao.sub }}</span>
+    </button>
+  }
+</section>

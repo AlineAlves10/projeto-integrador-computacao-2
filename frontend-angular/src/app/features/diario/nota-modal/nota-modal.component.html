@@ -1,0 +1,25 @@
+<app-modal [aberto]="aberto()" [titulo]="titulo()" (fechar)="fechar.emit()">
+  <form [formGroup]="form" (ngSubmit)="salvar()">
+    <app-mensagem [texto]="erro()" />
+    <div class="form-group">
+      <label for="nota-categoria">Categoria</label>
+      <select id="nota-categoria" class="form-control" formControlName="tag">
+        @for (opcao of opcoes; track opcao[0]) {
+          <option [value]="opcao[0]">{{ opcao[1].opcao }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="nota-titulo">Título</label>
+      <input type="text" id="nota-titulo" class="form-control" formControlName="titulo" maxlength="150" placeholder="Ex: Primeiro sorriso intencional">
+    </div>
+    <div class="form-group">
+      <label for="nota-texto">Descrição detalhada</label>
+      <textarea id="nota-texto" class="form-control" formControlName="texto" rows="4" maxlength="5000" placeholder="Conte como foi o momento..."></textarea>
+    </div>
+    <div class="acoes-formulario">
+      <button type="button" class="btn-cancel" (click)="fechar.emit()">Cancelar</button>
+      <button type="submit" class="btn-submit" [disabled]="enviando()">Salvar Nota</button>
+    </div>
+  </form>
+</app-modal>

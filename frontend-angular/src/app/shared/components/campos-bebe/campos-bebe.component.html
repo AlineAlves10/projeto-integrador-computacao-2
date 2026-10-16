@@ -1,0 +1,39 @@
+<div [formGroup]="form()">
+  <div [class.form-row]="emLinha()">
+    <div class="form-group">
+      <label [for]="prefixo + '-nome'">Nome do Bebê</label>
+      <input type="text" [id]="prefixo + '-nome'" class="form-control" formControlName="nome" maxlength="120" placeholder="Ex: Lucas">
+    </div>
+    <div class="form-group">
+      <label [for]="prefixo + '-nasc'">Data de Nascimento</label>
+      <input type="date" [id]="prefixo + '-nasc'" class="form-control" formControlName="dataNascimento" [max]="hoje">
+    </div>
+    <div class="form-group">
+      <label [for]="prefixo + '-sexo'">Sexo</label>
+      <select [id]="prefixo + '-sexo'" class="form-control" formControlName="sexo">
+        <option value="">Selecione...</option>
+        <option value="M">Masculino</option>
+        <option value="F">Feminino</option>
+      </select>
+    </div>
+  </div>
+
+  @if (mostrarResponsavel()) {
+    <div class="form-group">
+      <label [for]="prefixo + '-resp'">Nome do responsável</label>
+      <input type="text" [id]="prefixo + '-resp'" class="form-control" formControlName="nomeResponsavel" maxlength="120" placeholder="Ex: Carla Souza">
+      <span class="texto-apoio">Obrigatório: identifica para quem a criança está sob seus cuidados. Se o responsável tiver conta, vincule-o depois em "Pessoas Vinculadas".</span>
+    </div>
+  }
+
+  <div class="form-group">
+    <label [for]="prefixo + '-obs'">Observações (alergias, cuidados especiais...)</label>
+    <textarea [id]="prefixo + '-obs'" class="form-control" formControlName="observacoes" rows="2" maxlength="255"
+              placeholder="Ex: Alergia a lactose ou 'Nenhuma'"></textarea>
+  </div>
+
+  <div class="form-group">
+    <span class="rotulo">Foto do Bebê</span>
+    <app-seletor-foto formControlName="foto" />
+  </div>
+</div>

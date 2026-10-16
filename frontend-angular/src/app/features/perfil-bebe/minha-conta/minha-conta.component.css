@@ -1,0 +1,11 @@
+.form-telefone {
+  margin-top: 1rem;
+}
+
+.sair {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  justify-content: flex-end;
+}

@@ -1,0 +1,28 @@
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.horario {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.descricao {
+  font-size: 0.85rem;
+}
+
+.acoes {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.metric-badge.atrasado {
+  background: #fef2f2;
+  color: var(--danger);
+}

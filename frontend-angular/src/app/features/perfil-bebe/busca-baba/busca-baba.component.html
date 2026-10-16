@@ -1,0 +1,47 @@
+<section class="baby-card">
+  <h4 class="titulo-cartao">🔎 Buscar entre os bebês sob meus cuidados</h4>
+  <form [formGroup]="form" (ngSubmit)="buscar()">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="busca-nome-bebe">Nome do bebê</label>
+        <input type="text" id="busca-nome-bebe" class="form-control" formControlName="nomeBebe">
+      </div>
+      <div class="form-group">
+        <label for="busca-nome-resp">Nome do responsável</label>
+        <input type="text" id="busca-nome-resp" class="form-control" formControlName="nomeResponsavel">
+      </div>
+      <div class="form-group">
+        <label for="busca-faixa">Faixa etária</label>
+        <select id="busca-faixa" class="form-control" formControlName="faixaEtaria">
+          <option value="">Todas</option>
+          @for (faixa of faixas; track faixa.valor) {
+            <option [value]="faixa.valor">{{ faixa.rotulo }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    <button type="submit" class="btn-action-small" [disabled]="buscando()">Buscar</button>
+  </form>
+
+  <app-mensagem [texto]="erro()" />
+  @let bebes = resultado();
+  @if (buscando()) {
+    <p class="estado-vazio">Buscando...</p>
+  } @else if (bebes) {
+    @for (b of bebes; track b.id) {
+      <div class="list-row">
+        <div>
+          <strong>{{ b.nome }}</strong>
+          <p class="texto-apoio">{{ b.dataNascimento | idade }}@if (b.nomeResponsavel) { • responsável: {{ b.nomeResponsavel }} }</p>
+        </div>
+        @if (b.id === bebeAtivo.id()) {
+          <span class="metric-badge">Selecionado</span>
+        } @else {
+          <button type="button" class="btn-outline" (click)="bebeAtivo.selecionar(b.id)">Selecionar</button>
+        }
+      </div>
+    } @empty {
+      <p class="estado-vazio">Nenhum bebê encontrado.</p>
+    }
+  }
+</section>

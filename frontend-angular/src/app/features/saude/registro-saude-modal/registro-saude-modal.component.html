@@ -1,0 +1,113 @@
+<app-modal [aberto]="aberto()" [titulo]="titulo()" (fechar)="fechar.emit()">
+  <form [formGroup]="form" (ngSubmit)="salvar()">
+    <app-mensagem [texto]="erro()" />
+    <div class="form-group">
+      <label for="saude-tipo">Tipo de registro</label>
+      <select id="saude-tipo" class="form-control" formControlName="tipo">
+        <option value="crescimento">⚖️ Medidas (peso, altura, perímetro cefálico)</option>
+        <option value="vacina">💉 Vacina aplicada</option>
+        <option value="medicamento">💊 Medicamento administrado</option>
+        <option value="consulta">🩺 Agendar consulta</option>
+      </select>
+    </div>
+
+    @switch (form.controls.tipo.value) {
+      @case ('crescimento') {
+        <div class="form-group">
+          <label for="cresc-data">Data da medição</label>
+          <input type="date" id="cresc-data" class="form-control" formControlName="crescData" [max]="hoje" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cresc-peso">Peso (kg)</label>
+            <input type="number" id="cresc-peso" class="form-control" formControlName="peso" step="0.01" min="0.2" max="60" placeholder="7,45">
+          </div>
+          <div class="form-group">
+            <label for="cresc-altura">Comprimento (cm)</label>
+            <input type="number" id="cresc-altura" class="form-control" formControlName="altura" step="0.1" min="20" max="150" placeholder="65,5">
+          </div>
+          <div class="form-group">
+            <label for="cresc-perimetro">Perímetro cefálico (cm)</label>
+            <input type="number" id="cresc-perimetro" class="form-control" formControlName="perimetro" step="0.1" min="15" max="70">
+          </div>
+        </div>
+        <p class="texto-apoio">Informe ao menos uma medida. Medições anteriores são mantidas no histórico.</p>
+      }
+      @case ('vacina') {
+        <div class="form-group">
+          <label for="vac-nome">Vacina</label>
+          <input type="text" id="vac-nome" class="form-control" formControlName="vacNome" maxlength="120" placeholder="Ex: Pentavalente" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="vac-dose">Dose</label>
+            <input type="text" id="vac-dose" class="form-control" formControlName="vacDose" maxlength="60" placeholder="Ex: 1ª dose" required>
+          </div>
+          <div class="form-group">
+            <label for="vac-data">Data de aplicação</label>
+            <input type="date" id="vac-data" class="form-control" formControlName="vacData" [max]="hoje" required>
+          </div>
+          <div class="form-group">
+            <label for="vac-proxima">Próxima dose (opcional)</label>
+            <input type="date" id="vac-proxima" class="form-control" formControlName="vacProxima">
+          </div>
+        </div>
+      }
+      @case ('medicamento') {
+        <p class="texto-apoio aviso-medicamento">Registre apenas medicamentos orientados por um profissional de saúde.</p>
+        <div class="form-group">
+          <label for="med-nome">Medicamento</label>
+          <input type="text" id="med-nome" class="form-control" formControlName="medNome" maxlength="120" placeholder="Ex: Vitamina D" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="med-dose">Dosagem</label>
+            <input type="text" id="med-dose" class="form-control" formControlName="medDose" maxlength="60" placeholder="Ex: 2 gotas" required>
+          </div>
+          <div class="form-group">
+            <label for="med-via">Via (opcional)</label>
+            <input type="text" id="med-via" class="form-control" formControlName="medVia" maxlength="60" placeholder="Ex: oral">
+          </div>
+          <div class="form-group">
+            <label for="med-quando">Data e hora</label>
+            <input type="datetime-local" id="med-quando" class="form-control" formControlName="medQuando" required>
+          </div>
+        </div>
+      }
+      @case ('consulta') {
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cons-quando">Data e hora da consulta</label>
+            <input type="datetime-local" id="cons-quando" class="form-control" formControlName="consQuando" required>
+          </div>
+          <div class="form-group">
+            <label for="cons-desc">Profissional ou especialidade (opcional)</label>
+            <input type="text" id="cons-desc" class="form-control" formControlName="consDescricao" maxlength="300" placeholder="Ex: pediatra">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cons-motivo">Motivo (opcional)</label>
+            <input type="text" id="cons-motivo" class="form-control" formControlName="consMotivo" maxlength="300" placeholder="Ex: acompanhamento de rotina">
+          </div>
+          <div class="form-group">
+            <label for="cons-local">Local (opcional)</label>
+            <input type="text" id="cons-local" class="form-control" formControlName="consLocal" maxlength="150" placeholder="Ex: clínica ou UBS">
+          </div>
+        </div>
+      }
+    }
+
+    @if (form.controls.tipo.value !== 'consulta') {
+      <div class="form-group">
+        <label for="saude-obs">Observações (opcional)</label>
+        <input type="text" id="saude-obs" class="form-control" formControlName="observacoes" maxlength="255">
+      </div>
+    }
+
+    <div class="acoes-formulario">
+      <button type="button" class="btn-cancel" (click)="fechar.emit()">Cancelar</button>
+      <button type="submit" class="btn-submit" [disabled]="enviando()">Salvar</button>
+    </div>
+  </form>
+</app-modal>

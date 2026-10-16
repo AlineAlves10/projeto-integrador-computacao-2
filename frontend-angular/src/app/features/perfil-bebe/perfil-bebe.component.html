@@ -1,0 +1,18 @@
+<div class="profile-grid">
+  <app-bebe-selecionado />
+  <app-meus-bebes />
+
+  @let bebeId = bebeAtivo.id();
+  @if (bebeId !== null) {
+    <app-vinculos [bebeId]="bebeId" />
+  }
+
+  @if (usuario(); as u) {
+    @if (u.tipo === 'BABA') {
+      <app-busca-baba [babaId]="u.id" />
+    }
+  }
+
+  <app-novo-bebe />
+  <app-minha-conta />
+</div>

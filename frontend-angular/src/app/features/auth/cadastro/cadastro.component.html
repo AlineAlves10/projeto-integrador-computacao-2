@@ -1,0 +1,97 @@
+<app-mensagem [texto]="mensagem()?.texto" [tipo]="mensagem()?.tipo ?? 'erro'" />
+
+@if (etapa() === 'edicao') {
+  <form [formGroup]="form" (ngSubmit)="revisar()" novalidate>
+    <div class="form-group">
+      <label for="cad-tipo">Tipo de Conta</label>
+      <select id="cad-tipo" class="form-control" formControlName="tipo">
+        <option value="RESPONSAVEL">Responsável pelo bebê</option>
+        <option value="BABA">Babá</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="cad-nome">Seu Nome</label>
+      <input type="text" id="cad-nome" class="form-control" formControlName="nome" placeholder="Ex: Maria Pereira" maxlength="120" autocomplete="name">
+    </div>
+
+    <div class="form-group">
+      <label for="cad-email">Seu E-mail</label>
+      <input type="email" id="cad-email" class="form-control" formControlName="email" placeholder="exemplo@email.com" maxlength="150" autocomplete="email">
+    </div>
+
+    <div class="form-group">
+      <label for="cad-telefone">Telefone com DDD (opcional)</label>
+      <input type="tel" id="cad-telefone" class="form-control" formControlName="telefone" placeholder="(11) 98765-4321" maxlength="25" inputmode="tel" autocomplete="tel">
+      <small class="texto-apoio">Visível só para as pessoas vinculadas aos mesmos bebês, para ligação ou WhatsApp.</small>
+    </div>
+
+    <div class="form-group">
+      <label for="cad-senha">Senha</label>
+      <input type="password" id="cad-senha" class="form-control" formControlName="senha" placeholder="Mínimo 6 caracteres" maxlength="72" autocomplete="new-password">
+    </div>
+
+    @if (ehResponsavel()) {
+      <hr class="separador">
+
+      <fieldset class="form-group">
+        <legend>Quantos bebês você deseja cadastrar?</legend>
+        <div class="opcoes-quantidade">
+          <label><input type="radio" formControlName="quantidade" value="um"> Um bebê</label>
+          <label><input type="radio" formControlName="quantidade" value="varios"> Mais de um bebê</label>
+        </div>
+      </fieldset>
+
+      @for (bebe of bebes.controls; track bebe; let i = $index) {
+        <div class="bebe-form-card">
+          <header>
+            <strong>{{ tituloDoBebe(i) }}</strong>
+            @if (bebes.length > 1) {
+              <button type="button" class="btn-outline perigo" (click)="removerBebe(i)">Remover</button>
+            }
+          </header>
+          <app-campos-bebe [form]="bebe" />
+        </div>
+      }
+
+      @if (variosBebes()) {
+        <button type="button" class="btn-secundario" (click)="adicionarBebe()">+ Adicionar outro bebê</button>
+      }
+    }
+
+    <button type="submit" class="btn-submit largo">Revisar Cadastro</button>
+  </form>
+} @else {
+  <section>
+    <h3 class="titulo-revisao">Confira os dados antes de concluir</h3>
+    @let conta = form.getRawValue();
+    <p class="resumo-conta">
+      <strong>{{ conta.nome }}</strong> • {{ conta.email }}@if (conta.telefone) { • {{ conta.telefone }} } •
+      {{ conta.tipo === 'RESPONSAVEL' ? 'Responsável' : 'Babá' }}
+    </p>
+
+    @if (ehResponsavel()) {
+      <p class="texto-apoio contagem">{{ bebes.length }} bebê(s):</p>
+      @for (bebe of bebes.controls; track bebe) {
+        @let b = bebe.getRawValue();
+        <div class="revisao-bebe">
+          <app-foto-bebe [arquivo]="b.foto" />
+          <div>
+            <strong>{{ b.nome }}</strong> ({{ b.sexo === 'M' ? 'masculino' : 'feminino' }})<br>
+            <span class="texto-apoio">{{ b.dataNascimento | dataBr }} • {{ b.dataNascimento | idade }}</span><br>
+            <span class="texto-apoio">{{ b.observacoes }}{{ b.foto ? '' : ' • sem foto' }}</span>
+          </div>
+        </div>
+      }
+    } @else {
+      <p class="texto-apoio">Depois de entrar, você poderá cadastrar os bebês sob seus cuidados ou ser vinculada por um responsável.</p>
+    }
+
+    <div class="acoes-formulario">
+      <button type="button" class="btn-secundario" (click)="voltarParaEdicao()" [disabled]="enviando()">Voltar e editar</button>
+      <button type="button" class="btn-submit" (click)="confirmar()" [disabled]="enviando()">
+        {{ enviando() ? 'Cadastrando...' : 'Confirmar Cadastro' }}
+      </button>
+    </div>
+  </section>
+}

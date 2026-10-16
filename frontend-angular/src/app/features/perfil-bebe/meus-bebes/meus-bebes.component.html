@@ -1,0 +1,32 @@
+<section class="baby-card">
+  <h4 class="titulo-cartao">🍼 Meus Bebês</h4>
+  <app-mensagem [texto]="bebeAtivo.erro()" />
+  @for (v of bebeAtivo.lista(); track v.bebe.id) {
+    <div class="list-row">
+      <div class="bebe">
+        <app-foto-bebe [bebe]="v.bebe" tamanho="pequena" />
+        <div>
+          <strong>{{ v.bebe.nome }}</strong>
+          <p class="texto-apoio">
+            {{ v.bebe.dataNascimento | idade }} • {{ rotuloPapel[v.papel] }}@if (v.bebe.nomeResponsavel) { • resp.: {{ v.bebe.nomeResponsavel }} }
+          </p>
+        </div>
+      </div>
+      @if (v.bebe.id === bebeAtivo.id()) {
+        <span class="metric-badge">Selecionado</span>
+      } @else {
+        <button type="button" class="btn-outline" (click)="bebeAtivo.selecionar(v.bebe.id)">Selecionar</button>
+      }
+    </div>
+  } @empty {
+    @if (bebeAtivo.pronto()) {
+      <p class="estado-vazio">
+        {{ ehBaba()
+          ? 'Você ainda não tem bebês vinculados. Cadastre um bebê abaixo ou peça ao responsável para vincular você pelo seu e-mail.'
+          : 'Você ainda não tem bebês cadastrados. Use o formulário abaixo.' }}
+      </p>
+    } @else {
+      <p class="estado-vazio">Carregando...</p>
+    }
+  }
+</section>

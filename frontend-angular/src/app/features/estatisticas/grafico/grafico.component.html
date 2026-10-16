@@ -1,0 +1,7 @@
+<div class="chart-container-box">
+  @if (temDados()) {
+    <canvas #canvas></canvas>
+  } @else {
+    <p class="estado-vazio">{{ vazio() }}</p>
+  }
+</div>

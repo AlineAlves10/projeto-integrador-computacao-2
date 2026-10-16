@@ -1,0 +1,18 @@
+<section class="baby-card">
+  <h4 class="titulo">Enviar foto ou vídeo</h4>
+  <form [formGroup]="form" (ngSubmit)="enviar()">
+    <app-mensagem [texto]="mensagem()?.texto" [tipo]="mensagem()?.tipo ?? 'erro'" />
+    <div class="form-group">
+      <label for="midia-arquivo">Arquivo</label>
+      <input #campoArquivo type="file" id="midia-arquivo" class="form-control" [accept]="aceitos" (change)="aoEscolher($event)">
+      <span class="texto-apoio">Fotos JPEG, PNG ou WebP até 10 MB. Vídeos MP4, MOV ou WebM até 50 MB e 5 minutos.</span>
+    </div>
+    <div class="form-group">
+      <label for="midia-descricao">Descrição (opcional)</label>
+      <input type="text" id="midia-descricao" class="form-control" formControlName="descricao" maxlength="300">
+    </div>
+    <button type="submit" class="btn-action-small" [disabled]="enviando() || !form.controls.arquivo.value">
+      {{ enviando() ? 'Enviando...' : 'Enviar' }}
+    </button>
+  </form>
+</section>

@@ -1,0 +1,39 @@
+<section class="baby-card">
+  <h4 class="titulo-cartao">👶 Bebê Selecionado</h4>
+  <app-mensagem [texto]="mensagem()?.texto" [tipo]="mensagem()?.tipo ?? 'erro'" />
+
+  @if (bebeAtivo.atual(); as bebe) {
+    <dl class="info-list">
+      <dt>Nome</dt><dd>{{ bebe.nome }}</dd>
+      <dt>Nascimento</dt><dd>{{ bebe.dataNascimento | dataBr }} ({{ bebe.dataNascimento | idade }})</dd>
+      <dt>Sexo</dt><dd>{{ rotuloSexo[bebe.sexo] || bebe.sexo }}</dd>
+      <dt>Responsável</dt><dd>{{ bebe.nomeResponsavel || '—' }}</dd>
+      <dt>Observações</dt><dd>{{ bebe.observacoes }}</dd>
+      <dt>Seu papel</dt><dd>{{ bebeAtivo.papel() ? rotuloPapel[bebeAtivo.papel()!] : '' }}</dd>
+    </dl>
+
+    <div class="gerenciar-foto">
+      <app-foto-bebe [bebe]="bebe" tamanho="grande" descricao="Foto do bebê selecionado" />
+      <div class="controles">
+        <input #campoFoto type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="escolherFoto($event)">
+        @if (novaFoto()) {
+          <app-foto-bebe [arquivo]="novaFoto()" tamanho="grande" descricao="Prévia da nova foto" />
+        }
+        <div class="grupo-botoes">
+          <button type="button" class="btn-outline" (click)="campoFoto.click()">{{ novaFoto() ? 'Escolher outra' : 'Trocar foto' }}</button>
+          @if (novaFoto()) {
+            <button type="button" class="btn-action-small" [disabled]="salvando()" (click)="salvarFoto()">Salvar foto</button>
+            <button type="button" class="btn-outline" (click)="novaFoto.set(null)">Cancelar</button>
+          } @else if (bebe.possuiFoto) {
+            <button type="button" class="btn-outline perigo" (click)="removerFoto()">Remover foto</button>
+          }
+        </div>
+        <span class="texto-apoio">JPEG, PNG ou WebP, até 5 MB</span>
+      </div>
+    </div>
+  } @else if (bebeAtivo.pronto()) {
+    <p class="estado-vazio">Nenhum bebê selecionado. Cadastre um bebê abaixo ou peça a um responsável para vincular você.</p>
+  } @else {
+    <p class="estado-vazio">Carregando...</p>
+  }
+</section>

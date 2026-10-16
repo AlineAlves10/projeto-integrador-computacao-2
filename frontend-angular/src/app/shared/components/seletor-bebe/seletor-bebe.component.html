@@ -1,0 +1,43 @@
+@let bebe = bebeAtivo.atual();
+@if (!bebeAtivo.pronto()) {
+  <span class="texto-apoio">Carregando bebês...</span>
+} @else if (bebeAtivo.erro()) {
+  <app-mensagem [texto]="bebeAtivo.erro()" />
+} @else if (bebe) {
+  <div class="seletor-bebe">
+    <app-foto-bebe [bebe]="bebe" [descricao]="'Foto de ' + bebe.nome" />
+    <div class="seletor-info">
+      <h3>{{ bebe.nome }}</h3>
+      <p class="texto-apoio">
+        {{ bebe.dataNascimento | idade }} • você é {{ (bebeAtivo.papel() ? rotuloPapel[bebeAtivo.papel()!] : '').toLowerCase() }}
+      </p>
+    </div>
+    @if (bebeAtivo.lista().length > 1) {
+      <button type="button" class="btn-outline" aria-haspopup="true" [attr.aria-expanded]="listaAberta()" (click)="alternarLista()">
+        Trocar bebê ▾
+      </button>
+    }
+    @if (listaAberta()) {
+      <div class="seletor-lista">
+        @for (vinculo of bebeAtivo.lista(); track vinculo.bebe.id) {
+          <button type="button" [class.ativo]="vinculo.bebe.id === bebe.id" (click)="selecionar(vinculo.bebe.id)">
+            <app-foto-bebe [bebe]="vinculo.bebe" tamanho="pequena" />
+            <span>
+              <strong>{{ vinculo.bebe.nome }}</strong><br>
+              <span class="texto-apoio">{{ vinculo.bebe.dataNascimento | idade }} • {{ rotuloPapel[vinculo.papel] }}</span>
+            </span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+} @else {
+  <div class="seletor-bebe">
+    <app-foto-bebe />
+    <div class="seletor-info">
+      <h3>Nenhum bebê vinculado</h3>
+      <p class="texto-apoio">Cadastre um bebê ou peça para ser vinculado(a) por um responsável.</p>
+    </div>
+    <a routerLink="/perfil" class="btn-outline">Cadastrar bebê</a>
+  </div>
+}

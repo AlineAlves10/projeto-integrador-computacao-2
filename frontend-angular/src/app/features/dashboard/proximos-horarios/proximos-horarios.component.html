@@ -1,0 +1,16 @@
+<div class="lista">
+  @for (h of horarios(); track h.id) {
+    <div class="horario">
+      <span class="descricao">{{ rotulo(h) }}</span>
+      <span class="acoes">
+        <span class="metric-badge" [class.atrasado]="atrasado(h)" [attr.title]="atrasado(h) ? 'Horário já passou' : null">{{ quando(h) }}</span>
+        <button type="button" class="btn-outline" title="Marcar como feito" aria-label="Marcar como feito"
+                (click)="alterarStatus.emit({ horario: h, status: 'CONCLUIDO' })">✓</button>
+        <button type="button" class="btn-outline perigo" title="Cancelar" aria-label="Cancelar horário"
+                (click)="alterarStatus.emit({ horario: h, status: 'CANCELADO' })">✕</button>
+      </span>
+    </div>
+  } @empty {
+    <p class="estado-vazio">Nenhum horário previsto. Use "+ Agendar".</p>
+  }
+</div>

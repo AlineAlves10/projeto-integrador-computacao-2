@@ -1,0 +1,81 @@
+.note-card {
+  height: 100%;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.75rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.note-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.note-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+}
+
+.tag-marco { background: rgba(99, 102, 241, 0.15); color: var(--primary); }
+.tag-humor { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+.tag-saude { background: rgba(16, 185, 129, 0.15); color: #059669; }
+.tag-geral { background: rgba(148, 163, 184, 0.2); color: #475569; }
+
+.note-date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.note-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0.6rem 0 0.25rem;
+}
+
+.note-body {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+.note-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border);
+}
+
+.acoes {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.btn-delete-note {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+}
+
+.btn-delete-note:hover {
+  text-decoration: underline;
+}

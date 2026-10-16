@@ -1,0 +1,15 @@
+.foto-upload {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.controles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.erro {
+  color: var(--danger);
+}

@@ -1,0 +1,67 @@
+.stats-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.rotulo-metrica {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.valor {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0.35rem 0;
+}
+
+.valor.sono {
+  color: var(--primary);
+}
+
+.valor.leite {
+  color: var(--secondary);
+}
+
+.valor.fraldas {
+  color: #f59e0b;
+}
+
+.bloco {
+  display: block;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.cabecalho-cartao {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cartao-ia {
+  border-left: 4px solid var(--primary);
+}
+
+.cartao-ia h4 {
+  color: var(--primary);
+  margin-bottom: 0.35rem;
+}
+
+.cartao-ia p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+@media (min-width: 992px) {
+  .charts-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

@@ -1,0 +1,25 @@
+<section class="baby-card">
+  <h4 class="titulo-cartao">👤 Minha Conta</h4>
+  <app-mensagem [texto]="erroConta()" />
+  @if (usuario(); as u) {
+    <dl class="info-list">
+      <dt>Nome</dt><dd>{{ u.nome }}</dd>
+      <dt>E-mail</dt><dd>{{ u.email }}</dd>
+      <dt>Tipo</dt><dd>{{ rotuloPapel[u.tipo] || u.tipo }}</dd>
+      <dt>Telefone</dt><dd>{{ (u.telefone | telefone) || '—' }}</dd>
+      <dt>Cadastro</dt><dd>{{ u.dataCadastro | dataBr }}</dd>
+    </dl>
+  }
+  <form [formGroup]="form" (ngSubmit)="salvarTelefone()" class="form-telefone">
+    <app-mensagem [texto]="mensagem()?.texto" [tipo]="mensagem()?.tipo ?? 'erro'" />
+    <div class="form-group">
+      <label for="conta-telefone">Telefone de contato (com DDD)</label>
+      <input type="tel" id="conta-telefone" class="form-control" formControlName="telefone" maxlength="25" inputmode="tel" autocomplete="tel" placeholder="(11) 98765-4321">
+      <span class="texto-apoio">Visível só para as pessoas vinculadas aos seus bebês. Deixe vazio para remover.</span>
+    </div>
+    <button type="submit" class="btn-action-small" [disabled]="salvando()">Salvar telefone</button>
+  </form>
+  <div class="sair">
+    <button type="button" class="btn-outline perigo" (click)="sair()">🚪 Sair da conta</button>
+  </div>
+</section>

@@ -1,0 +1,66 @@
+<section class="baby-card cabecalho-pagina">
+  <div>
+    <h2>Estatísticas & Análises</h2>
+    <p>Médias e evolução semanal de sono e alimentação</p>
+  </div>
+  <select class="metric-badge" aria-label="Período" [value]="dias()" (change)="alterarPeriodo($any($event.target).value)">
+    @for (p of periodos; track p) {
+      <option [value]="p">Últimos {{ p }} dias</option>
+    }
+  </select>
+</section>
+
+<app-mensagem [texto]="erro()" />
+
+@let ind = indicadores();
+@if (!bebeAtivo.pronto() || (bebeAtivo.atual() && !dados() && !erro())) {
+  <p class="estado-vazio">Carregando...</p>
+} @else if (!bebeAtivo.atual()) {
+  <app-mensagem texto="Nenhum bebê selecionado." />
+} @else if (ind) {
+  <app-mensagem [texto]="aviso()" tipo="sucesso" />
+
+  <div class="stats-summary-grid">
+    <div class="baby-card">
+      <span class="rotulo-metrica">MÉDIA DE SONO DIÁRIO</span>
+      <div class="valor sono">{{ ind.sono.valor }}</div>
+      <small class="texto-apoio">{{ ind.sono.comparacao }}</small>
+    </div>
+    <div class="baby-card">
+      <span class="rotulo-metrica">MÉDIA DE LEITE / DIA</span>
+      <div class="valor leite">{{ ind.leite.valor }}</div>
+      <small class="texto-apoio">{{ ind.leite.comparacao }}</small>
+    </div>
+    <div class="baby-card">
+      <span class="rotulo-metrica">TROCAS DE FRALDA / DIA</span>
+      <div class="valor fraldas">{{ ind.fraldas.valor }}</div>
+      <small class="texto-apoio">{{ ind.fraldas.comparacao }}</small>
+      <small class="texto-apoio bloco">{{ ind.fraldas.detalhe }}</small>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <section class="baby-card">
+      <div class="cabecalho-cartao">
+        <h4>Horas de Sono por Dia</h4>
+        <span class="texto-apoio">Sonecas + Sono Noturno</span>
+      </div>
+      <app-grafico tipo="sono" [rotulos]="rotulos()" [valores]="horasSono()" vazio="Sem períodos de sono encerrados no período." />
+    </section>
+    <section class="baby-card">
+      <div class="cabecalho-cartao">
+        <h4>Volume de Mamadeira (ml)</h4>
+        <span class="texto-apoio">Total Ingerido</span>
+      </div>
+      <app-grafico tipo="alimentacao" [rotulos]="rotulos()" [valores]="volumes()" vazio="Sem mamadeiras com volume informado no período." />
+    </section>
+  </div>
+}
+
+<section class="baby-card cartao-ia">
+  <h4>🤖 Inteligência Preditiva (Scikit-Learn)</h4>
+  <p>
+    Os padrões acima alimentarão o algoritmo preditivo de janelas de vigília. Nenhuma estimativa é exibida:
+    o endpoint de previsão (<code>/api/ia/prever-sono</code>) não está presente no back-end atual.
+  </p>
+</section>

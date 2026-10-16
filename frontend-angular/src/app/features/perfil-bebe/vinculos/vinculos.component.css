@@ -1,0 +1,22 @@
+.subtitulo {
+  margin-bottom: 0.35rem;
+}
+
+.explicacao {
+  margin-bottom: 1rem;
+}
+
+.acoes {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.form-vinculo {
+  margin-top: 1rem;
+}
+
+.form-vinculo .texto-apoio {
+  margin-bottom: 0.5rem;
+}

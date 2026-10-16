@@ -1,0 +1,8 @@
+<section class="baby-card">
+  <h4 class="titulo-cartao">➕ Cadastrar Novo Bebê</h4>
+  <app-mensagem [texto]="mensagem()?.texto" [tipo]="mensagem()?.tipo ?? 'erro'" />
+  <form [formGroup]="form" (ngSubmit)="cadastrar()" novalidate>
+    <app-campos-bebe [form]="form" [mostrarResponsavel]="ehBaba" [emLinha]="true" />
+    <button type="submit" class="btn-action-small" [disabled]="enviando()">Cadastrar Bebê</button>
+  </form>
+</section>

@@ -1,0 +1,14 @@
+.grade-indicadores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.rotulo {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.diario {
+  margin-top: 0.85rem;
+}

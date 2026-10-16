@@ -1,0 +1,35 @@
+<section class="baby-card cabecalho-pagina">
+  <div>
+    <h2>Rotina Diária</h2>
+    <p>{{ rotuloData() }}</p>
+  </div>
+  <input type="date" class="form-control seletor-data" aria-label="Data" [value]="data()" [max]="hoje"
+         (change)="alterarData($any($event.target))">
+</section>
+
+<app-acoes-rapidas [acoes]="acoes" (escolher)="abrirRegistro($event)" />
+
+<div class="filter-tabs" role="tablist">
+  @for (f of filtros; track f.valor) {
+    <button type="button" class="filter-tab" role="tab" [class.active]="filtro() === f.valor" [attr.aria-selected]="filtro() === f.valor"
+            (click)="filtro.set(f.valor)">{{ f.rotulo }}</button>
+  }
+</div>
+
+<div class="baby-card">
+  <h4 class="titulo-cartao">Histórico de Atividades</h4>
+  <app-mensagem [texto]="erro()" />
+  @let registros = itens();
+  @if (!bebeAtivo.pronto()) {
+    <p class="estado-vazio">Carregando...</p>
+  } @else if (!bebeAtivo.atual()) {
+    <p class="estado-vazio">Nenhum bebê selecionado.</p>
+  } @else if (registros) {
+    <app-linha-do-tempo [itens]="registros" [filtro]="filtro()" [comAcoes]="true" vazio="Nenhuma atividade registrada neste dia."
+                        (excluir)="excluir($event)" (encerrarSono)="encerrarSono($event)" />
+  } @else if (!erro()) {
+    <p class="estado-vazio">Carregando...</p>
+  }
+</div>
+
+<app-registro-rotina-modal [tipo]="registroAberto()" [dataBase]="data()" (fechar)="registroAberto.set(null)" (salvo)="recarregar()" />

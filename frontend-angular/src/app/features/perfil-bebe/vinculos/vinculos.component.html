@@ -1,0 +1,47 @@
+<section class="baby-card">
+  <h4 class="subtitulo">👨‍👩‍👧 Pessoas Vinculadas</h4>
+  <p class="texto-apoio explicacao">O telefone aparece apenas para quem tem vínculo com o bebê: a babá vê o contato do responsável e o responsável vê o contato da babá.</p>
+  <app-mensagem [texto]="mensagem()?.texto" [tipo]="mensagem()?.tipo ?? 'erro'" />
+
+  @if (dados(); as d) {
+    @for (c of d.contatos; track c.usuarioId) {
+      <div class="list-row">
+        <div>
+          <strong>{{ c.nome }}{{ c.voce ? ' (você)' : '' }}</strong>
+          <p class="texto-apoio">
+            {{ rotuloPapel[c.papel] }} • desde {{ c.dataVinculo | dataBr }}@if (c.telefone) { • {{ c.telefone }} }
+          </p>
+        </div>
+        <div class="acoes">
+          @if (!c.voce) {
+            @if (c.linkLigacao) {
+              <a class="btn-outline" [href]="c.linkLigacao">📞 Ligar</a>
+            }
+            @if (c.linkWhatsapp) {
+              <a class="btn-outline" [href]="c.linkWhatsapp" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
+            }
+          }
+          @if (c.podeRemover) {
+            <button type="button" class="btn-outline perigo" (click)="remover(c)">{{ c.voce ? 'Sair' : 'Remover' }}</button>
+          }
+        </div>
+      </div>
+    } @empty {
+      <p class="estado-vazio">Nenhum usuário vinculado.</p>
+    }
+
+    <!-- Aparece só para quem pode vincular; o servidor recusa as demais tentativas de qualquer forma -->
+    @if (d.podeGerenciarVinculos) {
+      <form [formGroup]="form" (ngSubmit)="vincular()" class="form-vinculo">
+        <p class="texto-apoio">Vincule uma babá ou outro responsável que já tenha conta no Babá Premium. O papel é o tipo da conta da pessoa.</p>
+        <div class="form-group">
+          <label for="vinculo-email">E-mail do usuário</label>
+          <input type="email" id="vinculo-email" class="form-control" formControlName="email" placeholder="pessoa@email.com" maxlength="150">
+        </div>
+        <button type="submit" class="btn-action-small" [disabled]="enviando()">+ Vincular Usuário</button>
+      </form>
+    }
+  } @else {
+    <p class="estado-vazio">Carregando...</p>
+  }
+</section>

@@ -1,0 +1,33 @@
+<section class="baby-card">
+  <h2>Fotos & Vídeos</h2>
+</section>
+
+@let bebeId = bebeAtivo.id();
+@if (bebeId !== null) {
+  <app-envio-midia [bebeId]="bebeId" (enviado)="recarregar()" />
+}
+
+<section class="baby-card">
+  <app-mensagem [texto]="erro()" />
+  @if (bebeAtivo.pronto() && bebeId === null) {
+    <app-mensagem texto="Nenhum bebê selecionado." />
+  } @else if (bebeId !== null) {
+    <div class="galeria-grade">
+      @for (midia of midias(); track midia.id) {
+        <app-midia-cartao [midia]="midia" [bebeId]="bebeId" (abrir)="aberta.set($event)" />
+      } @empty {
+        @if (totalItens() === 0) {
+          <p class="estado-vazio">Nenhuma foto ou vídeo ainda.</p>
+        } @else if (carregando()) {
+          <p class="estado-vazio">Carregando...</p>
+        }
+      }
+    </div>
+    @if (haMais()) {
+      <div class="carregar-mais">
+        <button type="button" class="btn-outline" [disabled]="carregando()" (click)="carregarMais()">Carregar mais</button>
+      </div>
+    }
+    <app-visualizador-midia [midia]="aberta()" [bebeId]="bebeId" (fechar)="aberta.set(null)" (excluida)="recarregar()" />
+  }
+</section>

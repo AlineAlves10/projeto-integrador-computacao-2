@@ -1,0 +1,27 @@
+:host {
+  display: contents;
+}
+
+.aviso {
+  grid-column: 1 / -1;
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-md);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+.aviso.erro {
+  background: #fef2f2;
+  color: var(--danger);
+  border-color: var(--danger-border);
+}
+
+.aviso.sucesso {
+  background: #f0fdf4;
+  color: #15803d;
+  border-color: #bbf7d0;
+}

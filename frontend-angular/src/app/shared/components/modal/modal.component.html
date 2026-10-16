@@ -1,0 +1,11 @@
+@if (aberto()) {
+  <div class="modal-overlay" (click)="aoClicarNoFundo($event)">
+    <div class="modal-card" [class.larga]="largura() === 'larga'" role="dialog" aria-modal="true" [attr.aria-label]="titulo()">
+      <header class="modal-cabecalho">
+        <h3>{{ titulo() }}</h3>
+        <button type="button" class="btn-fechar" aria-label="Fechar" (click)="fechar.emit()">&times;</button>
+      </header>
+      <ng-content />
+    </div>
+  </div>
+}

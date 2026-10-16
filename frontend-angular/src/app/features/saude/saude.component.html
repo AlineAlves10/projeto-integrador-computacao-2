@@ -1,0 +1,90 @@
+<section class="baby-card cabecalho-pagina">
+  <div>
+    <h2>Caderneta de Saúde</h2>
+    <p>Acompanhamento pediátrico, vacinas e biometria</p>
+  </div>
+  <button type="button" class="btn-action-small" (click)="novoRegistro()">+ Novo Registro</button>
+</section>
+
+<app-mensagem [texto]="erro()" />
+
+@let c = caderneta();
+@if (!bebeAtivo.pronto() || (bebeAtivo.atual() && !c && !erro())) {
+  <p class="estado-vazio">Carregando...</p>
+} @else if (!bebeAtivo.atual()) {
+  <p class="estado-vazio">Nenhum bebê selecionado.</p>
+} @else if (c) {
+  <div class="health-grid">
+    <div class="baby-card">
+      <span class="rotulo-metrica">⚖️ ÚLTIMO PESO</span>
+      <div class="metric-value-box">{{ ultimoPeso() ? numero(ultimoPeso()!.pesoKg, 2) + ' kg' : '—' }}</div>
+      <small class="texto-apoio">{{ ultimoPeso() ? 'Medido em ' + (ultimoPeso()!.dataRegistro | dataBr) : 'Sem registros de peso' }}</small>
+    </div>
+    <div class="baby-card">
+      <span class="rotulo-metrica">📏 COMPRIMENTO</span>
+      <div class="metric-value-box">{{ ultimaAltura() ? numero(ultimaAltura()!.alturaCm, 1) + ' cm' : '—' }}</div>
+      <small class="texto-apoio">{{ ultimaAltura() ? 'Medido em ' + (ultimaAltura()!.dataRegistro | dataBr) : 'Sem registros de comprimento' }}</small>
+    </div>
+    <div class="baby-card">
+      <span class="rotulo-metrica">🩺 PRÓXIMA CONSULTA</span>
+      <div class="metric-value-box consulta">{{ c.proximaConsulta ? (c.proximaConsulta.dataHoraPrevista | dataHoraBr) : '—' }}</div>
+      <small class="texto-apoio">
+        {{ c.proximaConsulta ? (descreverHorario(c.proximaConsulta) || 'Consulta agendada') : 'Sem consultas agendadas' }}
+      </small>
+    </div>
+  </div>
+
+  <section class="baby-card">
+    <h4 class="titulo-cartao">Histórico de Medidas</h4>
+    @for (m of c.crescimentos; track m.id) {
+      <div class="list-row">
+        <div>
+          <strong>{{ m.dataRegistro | dataBr }}</strong>
+          <p class="texto-apoio">{{ medidas(m) }}</p>
+        </div>
+        <button type="button" class="btn-outline perigo" (click)="excluir('crescimentos', m.id)">Excluir</button>
+      </div>
+    } @empty {
+      <p class="estado-vazio">Nenhuma medida registrada.</p>
+    }
+  </section>
+
+  <section class="baby-card">
+    <div class="cabecalho-cartao">
+      <h4>Vacinas Aplicadas</h4>
+      <span class="texto-apoio">Registradas na caderneta</span>
+    </div>
+    @for (v of c.vacinas; track v.id) {
+      <div class="list-row">
+        <div>
+          <strong>{{ v.nomeVacina }}</strong> <span class="badge-applied">✓ {{ v.dose }}</span>
+          <p class="texto-apoio">
+            Aplicada em {{ v.dataAplicacao | dataBr }}@if (v.proximaDose) { • próxima dose: {{ v.proximaDose | dataBr }} }@if (v.observacoes) { • {{ v.observacoes }} }
+          </p>
+        </div>
+        <button type="button" class="btn-outline perigo" (click)="excluir('vacinas', v.id)">Excluir</button>
+      </div>
+    } @empty {
+      <p class="estado-vazio">Nenhuma vacina registrada.</p>
+    }
+  </section>
+
+  <section class="baby-card">
+    <h4 class="titulo-cartao">Medicamentos Administrados</h4>
+    @for (m of c.medicamentos; track m.id) {
+      <div class="list-row">
+        <div>
+          <strong>{{ m.nomeMedicamento }}</strong>
+          <p class="texto-apoio">
+            {{ m.dosagem }}@if (m.viaAdministracao) { • {{ m.viaAdministracao }} } • {{ m.dataHora | dataHoraBr }}@if (m.observacoes) { • {{ m.observacoes }} }
+          </p>
+        </div>
+        <button type="button" class="btn-outline perigo" (click)="excluir('medicamentos', m.id)">Excluir</button>
+      </div>
+    } @empty {
+      <p class="estado-vazio">Nenhum medicamento registrado.</p>
+    }
+  </section>
+}
+
+<app-registro-saude-modal [aberto]="modalAberto()" (fechar)="modalAberto.set(false)" (salvo)="recarregar()" />

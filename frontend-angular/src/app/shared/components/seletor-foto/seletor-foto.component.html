@@ -1,0 +1,18 @@
+<div class="foto-upload">
+  <app-foto-bebe [arquivo]="arquivo()" tamanho="grande" descricao="Prévia da foto do bebê" />
+  <div class="controles">
+    <input #campo type="file" accept="image/jpeg,image/png,image/webp" (change)="aoSelecionar($event)" hidden>
+    <div class="grupo-botoes">
+      <button type="button" class="btn-outline" [disabled]="desabilitado()" (click)="escolher()">
+        {{ arquivo() ? 'Trocar foto' : 'Escolher foto' }}
+      </button>
+      @if (arquivo()) {
+        <button type="button" class="btn-outline perigo" [disabled]="desabilitado()" (click)="remover()">Remover</button>
+      }
+    </div>
+    <span class="texto-apoio">{{ dica() }}</span>
+    @if (erro()) {
+      <span class="texto-apoio erro" role="alert">{{ erro() }}</span>
+    }
+  </div>
+</div>

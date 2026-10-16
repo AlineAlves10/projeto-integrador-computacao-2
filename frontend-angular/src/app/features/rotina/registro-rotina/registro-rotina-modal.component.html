@@ -1,0 +1,229 @@
+<app-modal [aberto]="tipo() !== null" [titulo]="titulo()" (fechar)="fechar.emit()">
+  <form [formGroup]="form" (ngSubmit)="salvar()" class="campos">
+    <app-mensagem [texto]="erro()" />
+
+    @switch (tipo()) {
+      @case ('alimentacao') {
+        <div class="form-group">
+          <label for="reg-tipo-alimento">Tipo de alimentação</label>
+          <select id="reg-tipo-alimento" class="form-control" formControlName="tipoAlimento" required>
+            <option value="">Selecione o tipo</option>
+            @for (opcao of opcoesAlimentacao; track opcao[0]) {
+              <option [value]="opcao[0]">{{ opcao[1].rotulo }}</option>
+            }
+          </select>
+        </div>
+        @switch (form.controls.tipoAlimento.value) {
+          @case ('PEITO') {
+            <div class="form-row">
+              <div class="form-group">
+                <label for="reg-lado">Lado</label>
+                <select id="reg-lado" class="form-control" formControlName="lado" required>
+                  <option value="">Selecione o lado</option>
+                  <option value="ESQUERDO">Esquerdo</option>
+                  <option value="DIREITO">Direito</option>
+                  <option value="AMBOS">Ambos</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="reg-duracao-mamada">Duração (min, opcional)</label>
+                <input type="number" id="reg-duracao-mamada" class="form-control" formControlName="duracaoMamada" min="1" max="300">
+              </div>
+            </div>
+          }
+          @case ('LEITE_MATERNO') {
+            <ng-container *ngTemplateOutlet="campoVolume" />
+          }
+          @case ('FORMULA') {
+            <ng-container *ngTemplateOutlet="campoVolume" />
+          }
+          @case ('SOLIDA') {
+            <div class="form-row">
+              <div class="form-group">
+                <label for="reg-alimento">Alimento</label>
+                <input type="text" id="reg-alimento" class="form-control" formControlName="alimento" maxlength="120" placeholder="Ex: papinha de banana" required>
+              </div>
+              <div class="form-group">
+                <label for="reg-quantidade">Quantidade consumida (opcional)</label>
+                <input type="text" id="reg-quantidade" class="form-control" formControlName="quantidade" maxlength="60" placeholder="Ex: 3 colheres, metade do prato">
+              </div>
+            </div>
+          }
+        }
+        <ng-container *ngTemplateOutlet="campoHora; context: { $implicit: 'Horário' }" />
+        <ng-container *ngTemplateOutlet="campoObservacao; context: { rotulo: 'Observações (opcional)', exemplo: '' }" />
+      }
+
+      @case ('fralda') {
+        <fieldset class="form-group">
+          <legend>O que havia na fralda?</legend>
+          <div class="opcoes-marcaveis">
+            <label><input type="checkbox" formControlName="xixi" (change)="ajustarFralda('xixi', $any($event.target).checked)"> 💧 Xixi</label>
+            <label><input type="checkbox" formControlName="coco" (change)="ajustarFralda('coco', $any($event.target).checked)"> 💩 Cocô</label>
+            <label><input type="checkbox" formControlName="limpa" (change)="ajustarFralda('limpa', $any($event.target).checked)"> Fralda limpa / seca</label>
+          </div>
+          <span class="texto-apoio">Marque xixi e cocô juntos quando houver os dois na mesma troca.</span>
+        </fieldset>
+        @if (form.controls.coco.value) {
+          <div class="form-group">
+            <label for="reg-fralda-consistencia">Consistência do cocô (opcional)</label>
+            <select id="reg-fralda-consistencia" class="form-control" formControlName="consistencia">
+              <option value="">Não informar</option>
+              <option value="LIQUIDA">Líquida</option>
+              <option value="PASTOSA">Pastosa</option>
+              <option value="FIRME">Firme</option>
+              <option value="ENDURECIDA">Endurecida</option>
+            </select>
+          </div>
+        }
+        <ng-container *ngTemplateOutlet="campoHora; context: { $implicit: 'Horário da Troca' }" />
+        <ng-container *ngTemplateOutlet="campoObservacao; context: { rotulo: 'Observações (opcional)', exemplo: 'Ex: Pomada aplicada, assadura leve' }" />
+      }
+
+      @case ('sono') {
+        <div class="form-group">
+          <label for="reg-sono-inicio">Início do Sono</label>
+          <input type="time" id="reg-sono-inicio" class="form-control" formControlName="sonoInicio" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-sono-fim">Fim do Sono (vazio se ainda dormindo)</label>
+          <input type="time" id="reg-sono-fim" class="form-control" formControlName="sonoFim">
+          <span class="texto-apoio">Se o fim for menor que o início, o início é considerado no dia anterior.</span>
+        </div>
+        <div class="form-group">
+          <label for="reg-sono-local">Local (opcional)</label>
+          <input type="text" id="reg-sono-local" class="form-control" formControlName="sonoLocal" maxlength="60" placeholder="Ex: berço">
+        </div>
+      }
+
+      @case ('remedios') {
+        <p class="texto-apoio">Registre apenas medicamentos orientados por um profissional de saúde.</p>
+        <div class="form-group">
+          <label for="reg-remedio-nome">Nome do Remédio / Vitamina</label>
+          <input type="text" id="reg-remedio-nome" class="form-control" formControlName="remedioNome" maxlength="120" placeholder="Ex: Vitamina D" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reg-remedio-dose">Dosagem</label>
+            <input type="text" id="reg-remedio-dose" class="form-control" formControlName="remedioDose" maxlength="60" placeholder="Ex: 4 gotas" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-remedio-via">Via (opcional)</label>
+            <input type="text" id="reg-remedio-via" class="form-control" formControlName="remedioVia" maxlength="60" placeholder="Ex: oral">
+          </div>
+        </div>
+        <ng-container *ngTemplateOutlet="campoHora; context: { $implicit: 'Horário' }" />
+      }
+
+      @case ('acordou') {
+        <ng-container *ngTemplateOutlet="campoHora; context: { $implicit: 'Horário do Despertar' }" />
+        <div class="form-group">
+          <label for="reg-humor">Humor ao Acordar</label>
+          <select id="reg-humor" class="form-control" formControlName="humor">
+            @for (humor of humores; track humor) {
+              <option [value]="humor">{{ humor }}</option>
+            }
+          </select>
+        </div>
+        @if (sonoAberto(); as sono) {
+          <label class="encerrar-sono">
+            <input type="checkbox" formControlName="encerrarSono">
+            Encerrar o sono iniciado em {{ sono.inicio | dataHoraBr }}
+          </label>
+        }
+      }
+
+      @case ('ritual_bom_dia') {
+        <ng-container *ngTemplateOutlet="campoHora; context: { $implicit: 'Horário' }" />
+        <ng-container *ngTemplateOutlet="campoObservacao; context: { rotulo: 'Atividades Realizadas', exemplo: 'Ex: Troca de roupa, cortinas abertas, banho de sol' }" />
+      }
+
+      @case ('ritual_sono') {
+        <ng-container *ngTemplateOutlet="campoHora; context: { $implicit: 'Horário de Início' }" />
+        <ng-container *ngTemplateOutlet="campoObservacao; context: { rotulo: 'Etapas do Ritual', exemplo: 'Ex: Banho morno, massagem, ruído branco' }" />
+      }
+
+      @case ('brincar') {
+        <div class="form-group">
+          <label for="reg-obs">Atividade / Brincadeira</label>
+          <input type="text" id="reg-obs" class="form-control" formControlName="observacao" maxlength="255" placeholder="Ex: Tummy time, mordedor, historinha" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-duracao">Duração (minutos)</label>
+          <input type="number" id="reg-duracao" class="form-control" formControlName="duracao" placeholder="Ex: 25" min="1" max="1440">
+        </div>
+        <ng-container *ngTemplateOutlet="campoHora; context: { $implicit: 'Horário' }" />
+      }
+
+      @case ('banho') {
+        <ng-container *ngTemplateOutlet="campoHora; context: { $implicit: 'Horário' }" />
+        <ng-container *ngTemplateOutlet="campoObservacao; context: { rotulo: 'Observações (opcional)', exemplo: 'Ex: Banho relaxante antes da soneca' }" />
+      }
+
+      @case ('horario') {
+        <p class="texto-apoio">O horário previsto é só um lembrete: ao realizar o cuidado, registre-o pelos botões de rotina.</p>
+        <div class="form-group">
+          <label for="reg-horario-tipo">Tipo</label>
+          <select id="reg-horario-tipo" class="form-control" formControlName="horarioTipo" required>
+            <option value="">Selecione o tipo</option>
+            @for (tipoHorario of tiposHorario; track tipoHorario[0]) {
+              <option [value]="tipoHorario[0]">{{ tipoHorario[1].rotulo }}</option>
+            }
+          </select>
+        </div>
+        @if (configHorario()?.aviso) {
+          <p class="texto-apoio">{{ configHorario()?.aviso }}</p>
+        }
+        <div class="form-group">
+          <label for="reg-horario-quando">Data e hora previstas</label>
+          <input type="datetime-local" id="reg-horario-quando" class="form-control" formControlName="horarioQuando" required>
+        </div>
+        @if (configHorario()?.descricao; as campo) {
+          <div class="form-group">
+            <label for="reg-horario-descricao">{{ campo.rotulo }}</label>
+            <input type="text" id="reg-horario-descricao" class="form-control" formControlName="horarioDescricao" maxlength="300"
+                   [placeholder]="campo.exemplo" [required]="!!campo.obrigatorio">
+          </div>
+        }
+        @if (configHorario()?.detalhes; as campo) {
+          <div class="form-group">
+            <label for="reg-horario-detalhes">{{ campo.rotulo }}</label>
+            <input type="text" id="reg-horario-detalhes" class="form-control" formControlName="horarioDetalhes" maxlength="300" [placeholder]="campo.exemplo">
+          </div>
+        }
+        @if (configHorario()?.local; as campo) {
+          <div class="form-group">
+            <label for="reg-horario-local">{{ campo.rotulo }}</label>
+            <input type="text" id="reg-horario-local" class="form-control" formControlName="horarioLocal" maxlength="150" [placeholder]="campo.exemplo">
+          </div>
+        }
+      }
+    }
+
+    <div class="acoes-formulario">
+      <button type="button" class="btn-cancel" (click)="fechar.emit()">Cancelar</button>
+      <button type="submit" class="btn-submit" [disabled]="enviando()">Salvar</button>
+    </div>
+
+    <ng-template #campoHora let-rotulo>
+      <div class="form-group">
+        <label for="reg-hora">{{ rotulo }}</label>
+        <input type="time" id="reg-hora" class="form-control" formControlName="hora" required>
+      </div>
+    </ng-template>
+
+    <ng-template #campoObservacao let-rotulo="rotulo" let-exemplo="exemplo">
+      <div class="form-group">
+        <label for="reg-obs">{{ rotulo }}</label>
+        <input type="text" id="reg-obs" class="form-control" formControlName="observacao" maxlength="255" [placeholder]="exemplo">
+      </div>
+    </ng-template>
+
+    <ng-template #campoVolume>
+      <div class="form-group">
+        <label for="reg-volume">Volume (ml)</label>
+        <input type="number" id="reg-volume" class="form-control" formControlName="volume" placeholder="Ex: 150" min="1" max="2000" required>
+      </div>
+    </ng-template>
+  </form>
+</app-modal>
