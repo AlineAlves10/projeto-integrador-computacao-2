@@ -2,7 +2,8 @@ package br.com.projeto.dto.request;
 
 import br.com.projeto.Enum.TipoUsuarioEnum;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,18 +17,23 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class UsuarioRequest {
 
+    // Ignorados no cadastro (ver UsuarioMapper); mantidos por compatibilidade com clientes antigos
     private Long id;
 
-    @NotNull
+    @NotBlank
+    @Size(max = 120)
     private String nome;
 
-    @NotNull
+    @NotBlank
     @Email
+    @Size(max = 150)
     private String email;
 
-    @NotNull
+    @NotBlank
+    @Size(min = 6, max = 72)
     private String senha;
 
+    @Size(max = 25) // opcional; validado e normalizado em Telefone
     private String telefone;
 
     private String fotoPerfil;

@@ -8,8 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-// Identifica quem será vinculado por e-mail (preferencial) ou id. O papel no vínculo é sempre o tipo da conta
-// da pessoa; papel e bebeId são aceitos por compatibilidade e, se enviados, precisam conferir.
+// Identifica quem será vinculado pelo e-mail (obrigatório). O papel no vínculo é sempre o tipo da conta
+// da pessoa; usuarioId, papel e bebeId são aceitos por compatibilidade e, se enviados, precisam conferir.
 @Getter
 @Setter
 @NoArgsConstructor

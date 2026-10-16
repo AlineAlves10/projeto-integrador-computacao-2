@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
@@ -42,7 +43,7 @@ class BabaPremiumIntegracaoTest {
 
     // ---------- utilitários ----------
 
-    private record Sessao(String token, Long usuarioId, List<Long> bebes) {
+    private record Sessao(String token, Long usuarioId, String email, List<Long> bebes) {
     }
 
     private static String email() {
@@ -62,12 +63,13 @@ class BabaPremiumIntegracaoTest {
     }
 
     private Sessao novaSessao(String tipo, String... bebes) throws Exception {
-        String corpo = cadastrar(email(), tipo, String.join(",", bebes))
+        String email = email();
+        String corpo = cadastrar(email, tipo, String.join(",", bebes))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         List<Integer> ids = JsonPath.read(corpo, "$.bebes[*].id");
         return new Sessao(JsonPath.read(corpo, "$.sessao.token"),
-                ((Integer) JsonPath.read(corpo, "$.sessao.usuario.id")).longValue(),
+                ((Integer) JsonPath.read(corpo, "$.sessao.usuario.id")).longValue(), email,
                 ids.stream().map(Integer::longValue).toList());
     }
 
@@ -105,7 +107,7 @@ class BabaPremiumIntegracaoTest {
                 .andExpect(jsonPath("$.bebes[0].nomeResponsavel").value("Pessoa Teste"))
                 .andReturn().getResponse().getContentAsString();
 
-        Sessao s = new Sessao(JsonPath.read(corpo, "$.sessao.token"), null, List.of());
+        Sessao s = new Sessao(JsonPath.read(corpo, "$.sessao.token"), null, email, List.of());
         get("/bebes/meus", s)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -337,7 +339,7 @@ class BabaPremiumIntegracaoTest {
         // Babá vinculada lê, mas não edita a nota de outra pessoa
         Sessao baba = novaSessao("BABA");
         enviar(HttpMethod.POST, "/bebes/" + bebe + "/usuarios", resp,
-                "{\"usuarioId\":" + baba.usuarioId() + ",\"bebeId\":" + bebe + ",\"papel\":\"BABA\"}")
+                "{\"email\":\"" + baba.email() + "\"}")
                 .andExpect(status().isCreated());
         get(base, baba).andExpect(jsonPath("$", hasSize(1)));
         enviar(HttpMethod.PUT, base + "/" + nota, baba, "{\"titulo\":\"x\",\"texto\":\"x\",\"tag\":\"GERAL\"}")
@@ -621,7 +623,7 @@ class BabaPremiumIntegracaoTest {
                 .andExpect(status().isForbidden());
         // Família B tentando se vincular sozinha ao bebê de A
         enviar(HttpMethod.POST, "/bebes/" + bebeA + "/usuarios", familiaB,
-                "{\"usuarioId\":" + familiaB.usuarioId() + ",\"bebeId\":" + bebeA + ",\"papel\":\"RESPONSAVEL\"}")
+                "{\"email\":\"" + familiaB.email() + "\"}")
                 .andExpect(status().isForbidden());
         // Bebê inexistente responde igual a sem acesso
         get("/bebes/999999", familiaB).andExpect(status().isForbidden());
@@ -635,7 +637,7 @@ class BabaPremiumIntegracaoTest {
 
         // Vínculos: duplicado = 409, inexistente = 404 (exceções corrigidas)
         Sessao baba = novaSessao("BABA");
-        String vinculo = "{\"usuarioId\":" + baba.usuarioId() + ",\"bebeId\":" + bebeA + ",\"papel\":\"BABA\"}";
+        String vinculo = "{\"email\":\"" + baba.email() + "\",\"papel\":\"BABA\"}";
         enviar(HttpMethod.POST, "/bebes/" + bebeA + "/usuarios", familiaA, vinculo).andExpect(status().isCreated());
         enviar(HttpMethod.POST, "/bebes/" + bebeA + "/usuarios", familiaA, vinculo).andExpect(status().isConflict());
         get("/bebes/" + bebeA + "/usuarios/" + familiaB.usuarioId(), familiaA).andExpect(status().isNotFound());
@@ -666,5 +668,171 @@ class BabaPremiumIntegracaoTest {
                 .andExpect(jsonPath("$.periodo.mediaRefeicoes").value(nullValue()));
         get(base + "/foto", s).andExpect(status().isNotFound());
         get("/bebes/meus", novaSessao("BABA")).andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    // ---------- 15 a 17: contatos, vínculos e galeria ----------
+
+    private ResultActions remover(String url, Sessao s) throws Exception {
+        return mvc.perform(delete(url).header("Authorization", "Bearer " + s.token()));
+    }
+
+    @Test
+    @DisplayName("15. Telefone e vínculos: contato só entre vinculados; babá não remove responsável; responsável revoga babá")
+    void telefoneEPermissoesDeVinculo() throws Exception {
+        Sessao resp = novaSessao("RESPONSAVEL", bebeJson("Nina", "2025-08-01"));
+        Sessao baba = novaSessao("BABA");
+        Sessao baba2 = novaSessao("BABA");
+        Sessao estranho = novaSessao("RESPONSAVEL", bebeJson("Theo", "2025-08-01"));
+        Long bebe = resp.bebes().getFirst();
+        String base = "/bebes/" + bebe;
+
+        enviar(HttpMethod.PUT, "/usuarios/me/telefone", resp, "{\"telefone\":\"123\"}").andExpect(status().isBadRequest());
+        enviar(HttpMethod.PUT, "/usuarios/me/telefone", resp, "{\"telefone\":\"(11) 98765-4321\"}")
+                .andExpect(jsonPath("$.telefone").value("+5511987654321"));
+        enviar(HttpMethod.PUT, "/usuarios/me/telefone", baba, "{\"telefone\":\"21 3456-7890\"}").andExpect(status().isOk());
+        enviar(HttpMethod.PUT, "/usuarios/me/telefone", baba2, "{\"telefone\":\"31 99876-5432\"}").andExpect(status().isOk());
+
+        // Antes do vínculo ninguém vê o telefone de ninguém
+        get("/usuarios/" + resp.usuarioId(), baba).andExpect(status().isForbidden());
+        get(base + "/contatos", baba).andExpect(status().isForbidden());
+
+        // Vínculo apenas por e-mail (id sequencial é recusado)
+        enviar(HttpMethod.POST, base + "/usuarios", resp, "{\"usuarioId\":" + baba.usuarioId() + "}").andExpect(status().isBadRequest());
+        enviar(HttpMethod.POST, base + "/usuarios", resp, "{\"email\":\"" + baba.email() + "\"}").andExpect(status().isCreated());
+        enviar(HttpMethod.POST, base + "/usuarios", resp, "{\"email\":\"" + baba2.email() + "\"}").andExpect(status().isCreated());
+        // A babá não vincula pessoas a um bebê que tem responsável
+        enviar(HttpMethod.POST, base + "/usuarios", baba, "{\"email\":\"" + estranho.email() + "\"}").andExpect(status().isForbidden());
+
+        // Babá vê o contato do responsável (com ligação e WhatsApp), mas não o da outra babá
+        get(base + "/contatos", baba)
+                .andExpect(jsonPath("$.podeGerenciarVinculos").value(false))
+                .andExpect(jsonPath("$.contatos[?(@.usuarioId == " + resp.usuarioId() + ")].telefone").value("(11) 98765-4321"))
+                .andExpect(jsonPath("$.contatos[?(@.usuarioId == " + resp.usuarioId() + ")].linkLigacao").value("tel:+5511987654321"))
+                .andExpect(jsonPath("$.contatos[?(@.usuarioId == " + resp.usuarioId() + ")].linkWhatsapp").value("https://wa.me/5511987654321"))
+                .andExpect(jsonPath("$.contatos[?(@.usuarioId == " + resp.usuarioId() + ")].podeRemover").value(false))
+                .andExpect(jsonPath("$.contatos[?(@.usuarioId == " + baba2.usuarioId() + ")].telefone").value(contains(nullValue())));
+        // Responsável vê o telefone da babá (fixo: ligação sim, WhatsApp não)
+        get(base + "/contatos", resp)
+                .andExpect(jsonPath("$.contatos[?(@.usuarioId == " + baba.usuarioId() + ")].telefone").value("(21) 3456-7890"))
+                .andExpect(jsonPath("$.contatos[?(@.usuarioId == " + baba.usuarioId() + ")].linkWhatsapp").value(contains(nullValue())));
+        get("/usuarios/" + baba2.usuarioId(), baba).andExpect(jsonPath("$.telefone").value(nullValue()))
+                .andExpect(jsonPath("$.email").doesNotExist());
+        get(base + "/contatos", estranho).andExpect(status().isForbidden());
+
+        // A babá consulta e registra, mas não remove o responsável nem a outra babá
+        get(base, baba).andExpect(status().isOk());
+        enviar(HttpMethod.POST, base + "/fraldas", baba, "{\"dataHora\":\"" + ontemAs("10:00") + "\",\"tipo\":\"XIXI\"}")
+                .andExpect(status().isCreated());
+        remover(base + "/usuarios/" + resp.usuarioId(), baba).andExpect(status().isForbidden());
+        remover(base + "/usuarios/" + baba2.usuarioId(), baba).andExpect(status().isForbidden());
+        remover(base + "/usuarios/" + baba.usuarioId(), estranho).andExpect(status().isForbidden());
+        get(base, resp).andExpect(status().isOk());
+
+        // Único responsável não sai nem exclui a conta enquanto houver outras pessoas vinculadas
+        remover(base + "/usuarios/" + resp.usuarioId(), resp).andExpect(status().isBadRequest());
+        remover("/usuarios/" + resp.usuarioId(), resp).andExpect(status().isBadRequest());
+
+        // Responsável revoga a babá 2: o acesso termina na hora; a babá 1 sai por conta própria
+        remover(base + "/usuarios/" + baba2.usuarioId(), resp).andExpect(status().isNoContent());
+        get(base, baba2).andExpect(status().isForbidden());
+        get(base + "/contatos", baba2).andExpect(status().isForbidden());
+        remover(base + "/usuarios/" + baba.usuarioId(), baba).andExpect(status().isNoContent());
+        get(base + "/contatos", resp).andExpect(jsonPath("$.contatos", hasSize(1)));
+    }
+
+    @Test
+    @DisplayName("16. Cadastro público não sobrescreve conta existente com id enviado pelo cliente")
+    void cadastroIgnoraIdInformado() throws Exception {
+        Sessao vitima = novaSessao("RESPONSAVEL", bebeJson("Rui", "2025-01-01"));
+        String corpo = """
+                {"id":%d,"nome":"Invasor","email":"%s","senha":"segredo123","tipo":"RESPONSAVEL","fotoPerfil":"x.png"}"""
+                .formatted(vitima.usuarioId(), email());
+        String resposta = mvc.perform(post("/usuarios").contentType(MediaType.APPLICATION_JSON).content(corpo))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        assertThat(((Integer) JsonPath.read(resposta, "$.id")).longValue()).isNotEqualTo(vitima.usuarioId());
+        assertThat(usuarioRepository.findById(vitima.usuarioId()).orElseThrow().getEmail()).isEqualTo(vitima.email());
+    }
+
+    private static byte[] imagemPng(int largura, int altura) throws Exception {
+        var imagem = new java.awt.image.BufferedImage(largura, altura, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        var saida = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(imagem, "png", saida);
+        return saida.toByteArray();
+    }
+
+    // MP4 mínimo: ftyp + moov/mvhd (versão 0) com a duração informada
+    private static byte[] mp4(int segundos) {
+        var b = java.nio.ByteBuffer.allocate(20 + 8 + 108);
+        b.putInt(20).put("ftyp".getBytes()).put("isom".getBytes()).putInt(512).put("isom".getBytes());
+        b.putInt(8 + 108).put("moov".getBytes());
+        b.putInt(108).put("mvhd".getBytes()).putInt(0).putInt(0).putInt(0).putInt(1000).putInt(segundos * 1000);
+        return b.array();
+    }
+
+    private ResultActions enviarMidia(Long bebe, Sessao s, byte[] conteudo, String descricao) throws Exception {
+        return mvc.perform(multipart("/bebes/" + bebe + "/midias")
+                .file(new MockMultipartFile("arquivo", "../../etc/arquivo.png", "application/octet-stream", conteudo))
+                .param("descricao", descricao)
+                .header("Authorization", "Bearer " + s.token()));
+    }
+
+    @Test
+    @DisplayName("17. Galeria: envio validado, miniatura, paginação, download e exclusão só com vínculo")
+    void galeriaPrivada() throws Exception {
+        Sessao resp = novaSessao("RESPONSAVEL", bebeJson("Gael", "2025-02-01"));
+        Sessao baba = novaSessao("BABA");
+        Sessao outra = novaSessao("RESPONSAVEL", bebeJson("Iris", "2025-02-01"));
+        Long bebe = resp.bebes().getFirst();
+        String base = "/bebes/" + bebe + "/midias";
+        enviar(HttpMethod.POST, "/bebes/" + bebe + "/usuarios", resp, "{\"email\":\"" + baba.email() + "\"}")
+                .andExpect(status().isCreated());
+
+        // Formato pelo conteúdo e vídeo acima de 5 minutos recusados
+        enviarMidia(bebe, baba, "<script>alert(1)</script>".getBytes(), "").andExpect(status().isBadRequest());
+        enviarMidia(bebe, baba, mp4(301), "").andExpect(status().isBadRequest());
+        enviarMidia(bebe, outra, imagemPng(10, 10), "").andExpect(status().isForbidden());
+
+        Long foto = idCriado(enviarMidia(bebe, baba, imagemPng(1200, 800), " Primeiro passeio ")
+                .andExpect(jsonPath("$.tipo").value("FOTO"))
+                .andExpect(jsonPath("$.descricao").value("Primeiro passeio"))
+                .andExpect(jsonPath("$.enviadoPorId").value(baba.usuarioId()))
+                .andExpect(jsonPath("$.possuiMiniatura").value(true)));
+        Long video = idCriado(enviarMidia(bebe, resp, mp4(10), "")
+                .andExpect(jsonPath("$.tipo").value("VIDEO"))
+                .andExpect(jsonPath("$.possuiMiniatura").value(false)));
+
+        // Paginação (mais recente primeiro) e permissão de exclusão calculada por quem consulta
+        get(base + "?pagina=0&tamanho=1", baba)
+                .andExpect(jsonPath("$.totalItens").value(2))
+                .andExpect(jsonPath("$.totalPaginas").value(2))
+                .andExpect(jsonPath("$.itens[0].id").value(video))
+                .andExpect(jsonPath("$.itens[0].podeExcluir").value(false));
+        get(base + "?pagina=1&tamanho=1", baba).andExpect(jsonPath("$.itens[0].id").value(foto));
+
+        // Miniatura JPEG reduzida; original só com token e vínculo
+        byte[] miniatura = get(base + "/" + foto + "/miniatura", resp)
+                .andExpect(status().isOk()).andExpect(content().contentType("image/jpeg"))
+                .andExpect(header().string("Cache-Control", containsString("no-store")))
+                .andReturn().getResponse().getContentAsByteArray();
+        var lida = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(miniatura));
+        assertThat(Math.max(lida.getWidth(), lida.getHeight())).isEqualTo(320);
+        get(base + "/" + video + "/arquivo", baba).andExpect(status().isOk()).andExpect(content().contentType("video/mp4"));
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(base + "/" + foto + "/arquivo"))
+                .andExpect(status().isUnauthorized());
+        get(base + "/" + foto + "/arquivo", outra).andExpect(status().isForbidden());
+        get(base, outra).andExpect(status().isForbidden());
+        // Id da mídia com o bebê de outra família na URL: não encontrada
+        get("/bebes/" + outra.bebes().getFirst() + "/midias/" + foto + "/arquivo", outra).andExpect(status().isNotFound());
+
+        // Exclusão: babá não exclui o que o responsável enviou; responsável exclui qualquer mídia do bebê
+        remover(base + "/" + video, baba).andExpect(status().isForbidden());
+        remover(base + "/" + foto, outra).andExpect(status().isForbidden());
+        remover(base + "/" + foto, resp).andExpect(status().isNoContent());
+        get(base + "/" + foto + "/arquivo", resp).andExpect(status().isNotFound());
+
+        // Babá revogada perde o acesso à galeria
+        remover("/bebes/" + bebe + "/usuarios/" + baba.usuarioId(), resp).andExpect(status().isNoContent());
+        get(base + "/" + video + "/arquivo", baba).andExpect(status().isForbidden());
     }
 }

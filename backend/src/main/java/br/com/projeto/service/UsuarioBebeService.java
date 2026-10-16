@@ -90,15 +90,15 @@ public class UsuarioBebeService {
         }
         verificarGestor(bebeId);
 
-        Usuario alvo;
-        if (request.getEmail() != null && !request.getEmail().isBlank()) {
-            alvo = usuarioRepository.findByEmailIgnoreCase(UsuarioService.normalizarEmail(request.getEmail()))
-                    .orElseThrow(() -> new UsuarioNaoEncontradoException("Nenhum usuário cadastrado com este e-mail."));
-        } else if (request.getUsuarioId() != null) {
-            alvo = usuarioRepository.findById(request.getUsuarioId())
-                    .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
-        } else {
+        // Somente por e-mail: aceitar o id permitiria vincular contas sequenciais (1, 2, 3...) e, com o vínculo,
+        // ver nome e telefone de pessoas que o responsável não conhece
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
             throw new RegraNegocioException("Informe o e-mail da pessoa a ser vinculada.");
+        }
+        Usuario alvo = usuarioRepository.findByEmailIgnoreCase(UsuarioService.normalizarEmail(request.getEmail()))
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Nenhum usuário cadastrado com este e-mail."));
+        if (request.getUsuarioId() != null && !request.getUsuarioId().equals(alvo.getId())) {
+            throw new RegraNegocioException("O usuário informado não corresponde ao e-mail.");
         }
         if (request.getPapel() != null && request.getPapel() != alvo.getTipo()) {
             throw new RegraNegocioException("O papel no vínculo deve ser o tipo da conta da pessoa ("
@@ -179,17 +179,5 @@ public class UsuarioBebeService {
         return usuarioBebeRepository.findById(id)
                 .orElseThrow(() ->
                         new VinculoNaoEncontrato("Vínculo não encontrado"));
-    }
-
-    // Remove o vínculo entre usuário e bebê
-    public void removerVinculo(Long usuarioId, Long bebeId) {
-
-        UsuarioBebeId id = new UsuarioBebeId(usuarioId, bebeId);
-
-        UsuarioBebe vinculo = usuarioBebeRepository.findById(id)
-                .orElseThrow(() ->
-                        new VinculoNaoEncontrato("Vínculo não encontrado"));
-
-        usuarioBebeRepository.delete(vinculo);
     }
 }

@@ -5,6 +5,7 @@ import br.com.projeto.exception.EmailJaCadastradoException;
 import br.com.projeto.exception.RegraNegocioException;
 import br.com.projeto.exception.UsuarioNaoEncontradoException;
 import br.com.projeto.model.autenticacao.Usuario;
+import br.com.projeto.model.autenticacao.UsuarioBebe;
 import br.com.projeto.repository.UsuarioBebeRepository;
 import br.com.projeto.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class UsuarioService {
         if (usuario.getTipo() == null) {
             throw new RegraNegocioException("Informe o tipo de usuário (RESPONSAVEL ou BABA).");
         }
+        usuario.setId(null); // sempre uma conta nova; nunca sobrescreve uma existente
         usuario.setEmail(normalizarEmail(usuario.getEmail()));
         usuario.setTelefone(Telefone.normalizar(usuario.getTelefone()));
         if (usuarioRepository.existsByEmailIgnoreCase(usuario.getEmail())) {
@@ -66,27 +68,28 @@ public class UsuarioService {
         return visualizadorId.equals(alvoId) || usuarioBebeRepository.podeVerTelefone(visualizadorId, alvoId);
     }
 
-    //deletarUsuario()
+    // Excluir a conta remove todos os vínculos dela (cascade). Mesma regra de sair de um bebê
+    // (UsuarioBebeService): o único responsável não sai enquanto houver outras pessoas vinculadas,
+    // senão a babá passaria a gerenciar o bebê sem que nenhum responsável tenha autorizado.
+    @Transactional
     public void deletarUsuario(Long id){
-        usuarioRepository.findById(id)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
-        usuarioRepository.deleteById(id);
+        Usuario usuario = obterUsuario(id);
+        for (UsuarioBebe vinculo : usuarioBebeRepository.findByUsuarioIdComBebe(id)) {
+            Long bebeId = vinculo.getId().getBebeId();
+            if (vinculo.getPapel() == TipoUsuarioEnum.RESPONSAVEL
+                    && usuarioBebeRepository.countByBebeIdAndPapel(bebeId, TipoUsuarioEnum.RESPONSAVEL) <= 1
+                    && usuarioBebeRepository.countByBebeId(bebeId) > 1) {
+                throw new RegraNegocioException("Você é o único responsável por " + vinculo.getBebe().getNome()
+                        + ". Vincule outro responsável ou remova as demais pessoas antes de excluir a conta.");
+            }
+        }
+        usuarioRepository.delete(usuario);
     }
 
     //obterUsuario()
     public Usuario obterUsuario(Long id){
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
-    }
-
-    //buscarUsuarioPorEmail()
-    public Usuario buscarUsuarioPorEmail(String email){
-        return usuarioRepository.findByEmailIgnoreCase(normalizarEmail(email))
-                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
-    }
-
-    public List<Usuario> listarTodos() {
-        return usuarioRepository.findAll();
     }
 
     // Usuários que compartilham bebês com o usuário informado (e ele mesmo)

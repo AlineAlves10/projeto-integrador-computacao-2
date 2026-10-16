@@ -29,6 +29,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,6 +41,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -54,6 +57,7 @@ public class MidiaService {
     public static final long MAX_FOTO_BYTES = 10L * 1024 * 1024;
     public static final long MAX_VIDEO_BYTES = 50L * 1024 * 1024;
     public static final long MAX_MINIATURA_BYTES = 2L * 1024 * 1024;
+    public static final int MAX_DURACAO_VIDEO_S = 5 * 60;
     private static final int LADO_MINIATURA = 320;
     private static final int TAMANHO_PAGINA_MAXIMO = 30;
     private static final long PIXELS_MAXIMOS = 50_000_000L; // evita estourar memória ao decodificar imagens enormes
@@ -115,6 +119,9 @@ public class MidiaService {
             String nome = UUID.randomUUID() + "." + formato.extensao();
             arquivo.transferTo(resolver(nome));
             gravados.add(nome);
+            if (formato.tipo() == TipoMidiaEnum.VIDEO) {
+                validarDuracao(resolver(nome), formato);
+            }
 
             String nomeMiniatura = formato.tipo() == TipoMidiaEnum.FOTO
                     ? miniaturaDaFoto(nome)
@@ -140,6 +147,74 @@ public class MidiaService {
             gravados.forEach(this::apagarArquivo); // sem registro no banco, nenhum arquivo fica órfão
             throw e;
         }
+    }
+
+    // MP4/MOV: duração lida do cabeçalho (mvhd). WebM, ou cabeçalho ilegível: vale só o limite de tamanho.
+    private static void validarDuracao(Path arquivo, Formato formato) {
+        if (formato.extensao().equals("webm")) return;
+        OptionalDouble duracao = duracaoMp4(arquivo);
+        if (duracao.isPresent() && duracao.getAsDouble() > MAX_DURACAO_VIDEO_S) {
+            throw new ArquivoInvalidoException("O vídeo deve ter no máximo 5 minutos.");
+        }
+    }
+
+    // Percorre as caixas de nível superior até "moov" e lê timescale/duration da caixa "mvhd" (versões 0 e 1)
+    static OptionalDouble duracaoMp4(Path arquivo) {
+        try (SeekableByteChannel canal = Files.newByteChannel(arquivo)) {
+            long fim = canal.size();
+            long pos = 0;
+            while (pos + 8 <= fim) {
+                ByteBuffer cab = ler(canal, pos, 16);
+                if (cab.limit() < 8) break;
+                long tamanho = cab.getInt(0) & 0xFFFFFFFFL;
+                String tipo = new String(cab.array(), 4, 4, StandardCharsets.ISO_8859_1);
+                int tamanhoCabecalho = 8;
+                if (tamanho == 1) {
+                    if (cab.limit() < 16) break;
+                    tamanho = cab.getLong(8);
+                    tamanhoCabecalho = 16;
+                } else if (tamanho == 0) {
+                    tamanho = fim - pos;
+                }
+                if (tamanho < tamanhoCabecalho) break;
+                if (tipo.equals("moov")) {
+                    return mvhd(canal, pos + tamanhoCabecalho, Math.min(fim, pos + tamanho));
+                }
+                pos += tamanho;
+            }
+        } catch (IOException | RuntimeException e) {
+            log.debug("Não foi possível ler a duração do vídeo {}", arquivo.getFileName());
+        }
+        return OptionalDouble.empty();
+    }
+
+    private static OptionalDouble mvhd(SeekableByteChannel canal, long inicio, long limite) throws IOException {
+        long pos = inicio;
+        while (pos + 8 <= limite) {
+            ByteBuffer caixa = ler(canal, pos, 40);
+            if (caixa.limit() < 8) break;
+            long tamanho = caixa.getInt(0) & 0xFFFFFFFFL;
+            String tipo = new String(caixa.array(), 4, 4, StandardCharsets.ISO_8859_1);
+            if (tipo.equals("mvhd")) {
+                boolean versao1 = caixa.get(8) == 1;
+                if (caixa.limit() < (versao1 ? 40 : 28)) break;
+                long escala = caixa.getInt(versao1 ? 28 : 20) & 0xFFFFFFFFL;
+                long duracao = versao1 ? caixa.getLong(32) : caixa.getInt(24) & 0xFFFFFFFFL;
+                return escala > 0 && duracao >= 0 ? OptionalDouble.of((double) duracao / escala) : OptionalDouble.empty();
+            }
+            if (tamanho < 8) break;
+            pos += tamanho;
+        }
+        return OptionalDouble.empty();
+    }
+
+    private static ByteBuffer ler(SeekableByteChannel canal, long pos, int quantidade) throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(quantidade);
+        canal.position(pos);
+        while (buffer.hasRemaining() && canal.read(buffer) > 0) {
+            // lê até completar ou chegar ao fim do arquivo
+        }
+        return buffer.flip();
     }
 
     private String miniaturaDaFoto(String nomeArquivo) throws IOException {
