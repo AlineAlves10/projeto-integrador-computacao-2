@@ -6,22 +6,38 @@ services:
     environment:
       POSTGRES_DB: baby_premium_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password123
-    ports:
-      - "5433:5432"
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata_premium:/var/lib/postgresql/data
 
-  # Front-end Angular: build de produção servido por nginx (frontend-angular/Dockerfile).
-  # A API é chamada em http://localhost:8080 a partir de http://localhost:3000 (origem liberada no CORS).
+  backend:
+    build: ./backend
+    container_name: baby_premium_back
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/baby_premium_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      UPLOADS_DIR: /app/uploads/fotos-bebes
+      MIDIAS_DIR: /app/uploads/midias-bebes
+      SPRING_JPA_SHOW_SQL: "false"
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx1g"
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      - postgres-db
+
   frontend:
     build: ./frontend-angular
     container_name: baby_premium_front
     restart: unless-stopped
     ports:
-      - "3000:80"
+      - "127.0.0.1:8085:80"
     depends_on:
-      - postgres-db
+      - backend
 
 volumes:
-  pgdata_premium: 
+  pgdata_premium:
+  uploads:

@@ -20,3 +20,6 @@ target/
 
 # Fotos enviadas pelos usuários
 backend/uploads/
+
+# Segredos do docker compose (DB_PASSWORD, JWT_SECRET)
+.env
